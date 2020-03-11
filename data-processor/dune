@@ -1,0 +1,9 @@
+(executable 
+  (package data-processor) 
+  (name data_processor) 
+  (modules (:standard))
+  (public_name data-processor.exe)
+  (libraries csv yojson)
+)
+
+(include_subdirs unqualified)

@@ -1,0 +1,33 @@
+name: GitHub pages
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@master
+      with:
+        node-version: '10.x'
+    - name: Install esy
+      run: yarn global add esy@0.6.2
+    - name: Install dependencies
+      run: esy
+    - name: Run data processor
+      run: esy start ./data/input.csv ./data/locations.json ./data/days.json ./data/data.json
+    - name: Install node dependencies
+      run: yarn
+    - name: Build
+      run: yarn prod
+    - name: Install esy
+      run: yarn global add esy@0.6.2
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v2.5.0
+      env:
+        ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+        PUBLISH_BRANCH: gh-pages
+        PUBLISH_DIR: ./bundleOutput

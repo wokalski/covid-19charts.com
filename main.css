@@ -1,0 +1,46 @@
+/* purgecss start ignore */
+@tailwind  base;
+
+body {
+  @apply bg-gray-900; 
+}
+
+h1 {
+  @apply text-4xl font-bold;
+}
+h2 {
+  @apply text-xl;
+}
+h3 {
+  @apply text-lg;
+}
+a {
+  @apply text-gray-500 underline;
+}
+
+tspan {
+  @apply fill-current text-gray-600;
+}
+
+.recharts-legend-item-text {
+  @apply text-gray-300;
+}
+
+.recharts-yAxis, .recharts-xAxis {
+  stroke-width: 2px;
+  @apply stroke-current text-gray-600;
+}
+
+.tooltip {
+  @apply bg-gray-900 border; 
+}
+
+.tooltip-label {
+  @apply text-gray-300; 
+}
+
+
+@tailwind  components;
+/* purgecss end ignore */
+
+@tailwind utilities;
