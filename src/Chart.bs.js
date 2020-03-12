@@ -20,7 +20,7 @@ function Chart(Props) {
     ];
   return React.createElement("div", {
               className: "flex-1"
-            }, React.createElement(Recharts.ResponsiveContainer, BsRecharts__ResponsiveContainer.makeProps(undefined, undefined, /* Prc */Block.__(1, [100]), undefined, undefined, /* Prc */Block.__(1, [100]), React.createElement(Recharts.LineChart, {
+            }, React.createElement(Recharts.ResponsiveContainer, BsRecharts__ResponsiveContainer.makeProps(undefined, undefined, /* Prc */Block.__(1, [100]), 400, undefined, /* Prc */Block.__(1, [100]), React.createElement(Recharts.LineChart, {
                           data: data,
                           margin: {
                             top: 20,

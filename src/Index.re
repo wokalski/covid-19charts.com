@@ -134,7 +134,7 @@ module App = {
       | Filters.Day0 => alignToDay0(thresholdOr1)
       | Dates => calendar
       };
-    <div className="h-screen w-screen flex bg-gray-900">
+    <div className="flex bg-gray-900 flex-col-reverse md:flex-row">
       <Filters locations setLocations allLocations scale timeline threshold />
       <Chart
         data

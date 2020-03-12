@@ -129,7 +129,7 @@ module Footer = {
       <div>
         <span className="text-gray-400 text-sm">
           {React.string("Contribute on ")}
-          <A href="https://github.com/wokalski/COVID-19charts" str="Github" />
+          <A href="https://github.com/wokalski/COVID-19charts.com" str="Github" />
           {React.string(" or contact the author at: ")}
           <br />
           {React.string("me (at) wczekalski.com")}
@@ -157,7 +157,7 @@ let make =
       ~timeline as (timeline, setTimeline),
       ~threshold as (threshold, setThreshold),
     ) => {
-  <div className="w-64 p-4">
+  <div className="w-full md:w-64 p-4">
     <Title />
     <Header title="Locations" />
     <ReactSelect

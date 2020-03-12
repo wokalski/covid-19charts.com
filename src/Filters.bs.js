@@ -155,7 +155,7 @@ function Filters$Footer(Props) {
                         }))), React.createElement("div", undefined, React.createElement("span", {
                       className: "text-gray-400 text-sm"
                     }, "Contribute on ", React.createElement(Filters$Footer$A, {
-                          href: "https://github.com/wokalski/COVID-19charts",
+                          href: "https://github.com/wokalski/COVID-19charts.com",
                           str: "Github"
                         }), " or contact the author at: ", React.createElement("br", undefined), "me (at) wczekalski.com")));
 }
@@ -177,7 +177,7 @@ function Filters(Props) {
   var match$2 = Props.threshold;
   var setThreshold = match$2[1];
   return React.createElement("div", {
-              className: "w-64 p-4"
+              className: "w-full md:w-64 p-4"
             }, React.createElement(Filters$Title, { }), React.createElement(Filters$Header, {
                   title: "Locations"
                 }), React.createElement(ReactSelect.default, {

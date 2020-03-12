@@ -140,7 +140,7 @@ function Index$App(Props) {
   var data = match$1 ? calendar : alignToDay0(thresholdOr1);
   var match$2 = scale[0];
   return React.createElement("div", {
-              className: "h-screen w-screen flex bg-gray-900"
+              className: "flex bg-gray-900 flex-col-reverse md:flex-row"
             }, React.createElement(Filters$ReasonReactExamples.make, {
                   locations: locations$1,
                   allLocations: allLocations,

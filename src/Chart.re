@@ -20,7 +20,7 @@ let make = (~data, ~color, ~locations, ~scale, ~threshold) => {
     | _ => None
     };
   <div className="flex-1">
-    <ResponsiveContainer height={Prc(100.)} width={Prc(100.)}>
+    <ResponsiveContainer minHeight=400 height={Prc(100.)} width={Prc(100.)}>
       <LineChart
         margin={"top": 20, "right": 50, "bottom": 20, "left": 0} data>
         {Js.Array.map(
