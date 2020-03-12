@@ -126,7 +126,7 @@ let calendar = {
           Js.Dict.set(
             row,
             Map.get(locations, countryId).name,
-            Map.get(Map.get(data, countryId), day) |> Obj.magic,
+            Map.get(Map.get(data, countryId), day) |> Js.Int.toString,
           );
         },
         countryIds,
@@ -169,7 +169,7 @@ let alignToDay0 = threshold => {
             Js.Dict.set(
               row,
               Map.get(locations, countryId).name,
-              Obj.magic(number),
+              number |> Js.Int.toString,
             )
           | None => ()
           }

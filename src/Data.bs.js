@@ -144,7 +144,7 @@ var calendar = days.map((function (day) {
                 if (countryId === "US (All regions)") {
                   console.log(data[countryId][day]);
                 }
-                row[locations[countryId].name] = data[countryId][day];
+                row[locations[countryId].name] = data[countryId][day].toString();
                 return /* () */0;
               }));
         return row;
@@ -177,7 +177,7 @@ function alignToDay0(threshold) {
                 countryIds.forEach((function (countryId) {
                         var match = Js_dict.get(data$1[countryId], day$1);
                         if (match !== undefined) {
-                          row[locations[countryId].name] = match;
+                          row[locations[countryId].name] = match.toString();
                           return /* () */0;
                         } else {
                           return /* () */0;
