@@ -3,9 +3,11 @@ open BsRecharts;
 type domain;
 external int_to_domain: int => domain = "%identity";
 external string_to_domain: string => domain = "%identity";
+[@bs.get] external clientHeight: Dom.element => float = "clientHeight";
 
 [@react.component]
 let make = (~data, ~color, ~locations, ~scale, ~threshold) => {
+  let divRef = React.useRef(Js.Nullable.null);
   let domain =
     switch (scale) {
     | `log =>
@@ -19,7 +21,19 @@ let make = (~data, ~color, ~locations, ~scale, ~threshold) => {
       |])
     | _ => None
     };
-  <div className="flex-1">
+  let (dot, setDot) = React.useState(() => true);
+  React.useEffect1(
+    () => {
+      let opt = divRef |> React.Ref.current |> Js.Nullable.toOption;
+      switch (opt) {
+      | Some(ref) => setDot(_ => clientHeight(ref) > 700.)
+      | None => ()
+      };
+      None;
+    },
+    [||],
+  );
+  <div ref={ReactDOMRe.Ref.domRef(divRef)} className="flex-1">
     <ResponsiveContainer minHeight=400 height={Prc(100.)} width={Prc(100.)}>
       <LineChart
         margin={"top": 20, "right": 50, "bottom": 20, "left": 0} data>
@@ -31,6 +45,7 @@ let make = (~data, ~color, ~locations, ~scale, ~threshold) => {
                dataKey
                stroke={color(dataKey)}
                strokeWidth=2
+               dot
              />,
            locations,
          )

@@ -14,11 +14,27 @@ function Chart(Props) {
   var locations = Props.locations;
   var scale = Props.scale;
   var threshold = Props.threshold;
+  var divRef = React.useRef(null);
   var domain = scale !== 5395588 ? undefined : /* array */[
       threshold === 0 ? "dataMin" : threshold,
       "dataMax"
     ];
+  var match = React.useState((function () {
+          return true;
+        }));
+  var setDot = match[1];
+  var dot = match[0];
+  React.useEffect((function () {
+          var opt = divRef.current;
+          if (!(opt == null)) {
+            Curry._1(setDot, (function (param) {
+                    return opt.clientHeight > 700;
+                  }));
+          }
+          return ;
+        }), /* array */[]);
   return React.createElement("div", {
+              ref: divRef,
               className: "flex-1"
             }, React.createElement(Recharts.ResponsiveContainer, BsRecharts__ResponsiveContainer.makeProps(undefined, undefined, /* Prc */Block.__(1, [100]), 400, undefined, /* Prc */Block.__(1, [100]), React.createElement(Recharts.LineChart, {
                           data: data,
@@ -34,6 +50,7 @@ function Chart(Props) {
                                 return React.createElement(Recharts.Line, {
                                             type: "monotone",
                                             dataKey: dataKey,
+                                            dot: dot,
                                             stroke: Curry._1(color, dataKey),
                                             strokeWidth: 2,
                                             key: dataKey
