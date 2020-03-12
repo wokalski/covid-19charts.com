@@ -16,15 +16,24 @@ jobs:
     - name: Install esy
       run: npm install -g esy@0.6.2
     - name: Install dependencies
-      run: esy
+      run: esy install
+    - name: Print esy cache
+      id: print_esy_cache
+      run: node .github/workflows/print_esy_cache.js
+    - name: Try to restore dependencies cache
+      id: deps-cache-macos
+      uses: actions/cache@v1
+      with:
+        path: ${{ steps.print_esy_cache.outputs.esy_cache }}
+        key: ${{ matrix.os }}-${{ hashFiles('**/index.json') }}
+    - name: Build dependencies
+      run: esy build
     - name: Run data processor
       run: esy start ./data/input.csv ./data/locations.json ./data/days.json ./data/data.json
     - name: Install node dependencies
       run: yarn
     - name: Build
       run: yarn prod
-    - name: Install esy
-      run: yarn global add esy@0.6.2
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v2.5.0
       env:
