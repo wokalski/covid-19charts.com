@@ -1,6 +1,5 @@
 'use strict';
 
-var List = require("bs-platform/lib/js/list.js");
 var $$Array = require("bs-platform/lib/js/array.js");
 var Js_dict = require("bs-platform/lib/js/js_dict.js");
 var Caml_primitive = require("bs-platform/lib/js/caml_primitive.js");
@@ -38,88 +37,11 @@ function randomColor(index) {
   return "hsla(" + (String(random) + ",70%,70%,0.8)");
 }
 
-function addAllRegionsLocations(locations, data) {
-  var countriesWithMultipleRegions = List.filter((function (param) {
-            return List.length(param[1]) > 1;
-          }))(Js_dict.entries(locations).sort((function (param, param$1) {
-                return Caml_primitive.caml_string_compare(param[1].country, param$1[1].country);
-              })).reduce((function (acc, param) {
-              var country = param[1].country;
-              var locationId = param[0];
-              if (acc) {
-                var match = acc[0];
-                if (country === match[0]) {
-                  return /* :: */[
-                          /* tuple */[
-                            country,
-                            /* :: */[
-                              locationId,
-                              match[1]
-                            ]
-                          ],
-                          acc[1]
-                        ];
-                } else {
-                  return /* :: */[
-                          /* tuple */[
-                            country,
-                            /* :: */[
-                              locationId,
-                              /* [] */0
-                            ]
-                          ],
-                          acc
-                        ];
-                }
-              } else {
-                return /* :: */[
-                        /* tuple */[
-                          country,
-                          /* :: */[
-                            locationId,
-                            /* [] */0
-                          ]
-                        ],
-                        /* [] */0
-                      ];
-              }
-            }), /* [] */0));
-  List.iter((function (param) {
-          var country = param[0];
-          var allRegionsId = country + " (All regions)";
-          return set(locations, allRegionsId, {
-                      country: country,
-                      provinceOrState: undefined,
-                      name: allRegionsId
-                    });
-        }), countriesWithMultipleRegions);
-  return List.iter((function (param) {
-                var allRegionsId = param[0] + " (All regions)";
-                var mergedData = { };
-                List.iter((function (locationId) {
-                        var dataPoints = data[locationId];
-                        Object.keys(dataPoints).forEach((function (key) {
-                                var current = dataPoints[key];
-                                var match = Js_dict.get(mergedData, key);
-                                if (match !== undefined) {
-                                  return set(mergedData, key, match + current | 0);
-                                } else {
-                                  return set(mergedData, key, current);
-                                }
-                              }));
-                        return /* () */0;
-                      }), param[1]);
-                return set(data, allRegionsId, mergedData);
-              }), countriesWithMultipleRegions);
-}
-
 var locations = require("../data/locations.json");
 
 var days = require("../data/days.json");
 
 var data = require("../data/data.json");
-
-addAllRegionsLocations(locations, data);
 
 var countryIds = Object.keys(locations);
 
@@ -196,7 +118,6 @@ var allLocations = Js_dict.entries(locations).map((function (param) {
 
 exports.$$Map = $$Map;
 exports.randomColor = randomColor;
-exports.addAllRegionsLocations = addAllRegionsLocations;
 exports.locations = locations;
 exports.days = days;
 exports.data = data;

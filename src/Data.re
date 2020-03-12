@@ -37,73 +37,10 @@ type location = {
 type day = string;
 type dataPoints = Map.t(day, int);
 
-let addAllRegionsLocations = (locations, data) => {
-  let countriesWithMultipleRegions =
-    Map.entries(locations)
-    |> Js.Array.sortInPlaceWith(((_, {country: a}), (_, {country: b})) => {
-         compare(a, b)
-       })
-    |> Js.Array.reduce(
-         (acc, (locationId, {country})) => {
-           switch (acc) {
-           | [] => [(country, [locationId])]
-           | [(prevCountry, current), ...tail] when country == prevCountry => [
-               (country, [locationId, ...current]),
-               ...tail,
-             ]
-           | tail => [(country, [locationId]), ...tail]
-           }
-         },
-         [],
-       )
-    |> List.filter(((_, l)) => List.length(l) > 1);
-
-  let allRegionsId = country => {
-    country ++ " (All regions)";
-  };
-
-  List.iter(
-    ((country, _)) => {
-      let allRegionsId = allRegionsId(country);
-      Map.set(
-        locations,
-        allRegionsId,
-        {country, provinceOrState: None, name: allRegionsId},
-      );
-    },
-    countriesWithMultipleRegions,
-  );
-
-  List.iter(
-    ((country, locationIds)) => {
-      let allRegionsId = allRegionsId(country);
-      let mergedData = Map.empty();
-      List.iter(
-        locationId => {
-          let dataPoints = Map.get(data, locationId);
-          dataPoints
-          |> Map.keys
-          |> Js.Array.forEach(key => {
-               let current = Map.get(dataPoints, key);
-               switch (Map.get_opt(mergedData, key)) {
-               | Some(x) => Map.set(mergedData, key, x + current)
-               | None => Map.set(mergedData, key, current)
-               };
-             });
-        },
-        locationIds,
-      );
-      Map.set(data, allRegionsId, mergedData);
-    },
-    countriesWithMultipleRegions,
-  );
-};
-
 let locations: Map.t(countryId, location) =
   require("../data/locations.json");
 let days: array(day) = require("../data/days.json");
 let data: Map.t(countryId, dataPoints) = require("../data/data.json");
-addAllRegionsLocations(locations, data);
 let countryIds = Map.keys(locations);
 
 let dayToIndex =
