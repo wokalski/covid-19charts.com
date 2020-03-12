@@ -114,7 +114,7 @@ function Index$App(Props) {
                       "Germany",
                       "Italy",
                       "Japan",
-                      "Mainland China (Guangdong)",
+                      "China (Guangdong)",
                       "Spain"
                     ].map((function (param) {
                           return locations[param];

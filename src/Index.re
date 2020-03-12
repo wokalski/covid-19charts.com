@@ -119,7 +119,7 @@ module App = {
   let make = () => {
     let (locations, setLocations) =
       React.useState(() =>
-        [|"Germany", "Italy", "Japan", "Mainland China (Guangdong)", "Spain"|]
+        [|"Germany", "Italy", "Japan", "China (Guangdong)", "Spain"|]
         |> Js.Array.map(Map.get(locations))
         |> Js.Array.map(({name: label} as value) =>
              {ReactSelect.label, value}
