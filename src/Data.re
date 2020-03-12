@@ -103,10 +103,7 @@ let locations: Map.t(countryId, location) =
   require("../data/locations.json");
 let days: array(day) = require("../data/days.json");
 let data: Map.t(countryId, dataPoints) = require("../data/data.json");
-/*
-  * Currently there are some overlapping data points among provinces/states
- addAllRegionsLocations(locations, data);
- */
+addAllRegionsLocations(locations, data);
 let countryIds = Map.keys(locations);
 
 let dayToIndex =
@@ -169,7 +166,11 @@ let alignToDay0 = threshold => {
         countryId => {
           switch (Map.get_opt(Map.get(data, countryId), day)) {
           | Some(number) =>
-            Js.Dict.set(row, Map.get(locations, countryId).name, Obj.magic(number))
+            Js.Dict.set(
+              row,
+              Map.get(locations, countryId).name,
+              Obj.magic(number),
+            )
           | None => ()
           }
         },

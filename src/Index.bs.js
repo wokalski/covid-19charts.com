@@ -15,7 +15,7 @@ function Index$App(Props) {
                       "Japan",
                       "China (Guangdong)",
                       "Spain",
-                      "US (California)"
+                      "US (All regions)"
                     ].map((function (param) {
                           return Data$ReasonReactExamples.$$Map.get(Data$ReasonReactExamples.locations, param);
                         })).map((function (value) {

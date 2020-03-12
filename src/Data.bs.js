@@ -119,6 +119,8 @@ var days = require("../data/days.json");
 
 var data = require("../data/data.json");
 
+addAllRegionsLocations(locations, data);
+
 var countryIds = Object.keys(locations);
 
 var dayToIndex = Js_dict.fromArray(days.map((function (day, index) {
