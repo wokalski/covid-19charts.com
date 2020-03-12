@@ -726,6 +726,12 @@ tspan {
           flex-direction: column;
 }
 
+.flex-col-reverse {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: reverse;
+          flex-direction: column-reverse;
+}
+
 .flex-1 {
   -webkit-box-flex: 1;
           flex: 1 1 0%;
@@ -737,10 +743,6 @@ tspan {
 
 .font-bold {
   font-weight: 700;
-}
-
-.h-screen {
-  height: 100vh;
 }
 
 .leading-tight {
@@ -813,10 +815,19 @@ tspan {
   font-size: 0.875rem;
 }
 
-.w-64 {
-  width: 16rem;
+.w-full {
+  width: 100%;
 }
 
-.w-screen {
-  width: 100vw;
+@media (min-width: 768px) {
+
+  .md\:flex-row {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+            flex-direction: row;
+  }
+
+  .md\:w-64 {
+    width: 16rem;
+  }
 }
