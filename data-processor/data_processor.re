@@ -66,7 +66,7 @@ let data = {
          (
            id,
            `Assoc(
-             rest |> List.map(((key, value)) => (key, `String(value))),
+             rest |> List.map(((key, value)) => (key, `Int(value |> int_of_string))),
            ),
          );
        | _ => invalid_arg("")
