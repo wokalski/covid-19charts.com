@@ -57,9 +57,6 @@ let calendar = {
       Js.Dict.set(row, "name", day);
       Js.Array.forEach(
         countryId => {
-          if (countryId === "US (All regions)") {
-            Js.log(Map.get(Map.get(data, countryId), day));
-          };
           Js.Dict.set(
             row,
             Map.get(locations, countryId).name,

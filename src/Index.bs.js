@@ -37,8 +37,22 @@ function Index$App(Props) {
         }));
   var thresholdOr1 = Belt_Option.getWithDefault(threshold[0], 1);
   var match$1 = timeline[0];
-  var data = match$1 ? Data$ReasonReactExamples.calendar : Data$ReasonReactExamples.alignToDay0(thresholdOr1);
-  var match$2 = scale[0];
+  var match$2 = match$1 ? /* tuple */[
+      Data$ReasonReactExamples.calendar,
+      (function (str) {
+          return str;
+        })
+    ] : /* tuple */[
+      Data$ReasonReactExamples.alignToDay0(thresholdOr1),
+      (function (str) {
+          if (str === "1") {
+            return "1 day since first case";
+          } else {
+            return str + " days since first case";
+          }
+        })
+    ];
+  var match$3 = scale[0];
   return React.createElement("div", {
               className: "flex bg-gray-900 flex-col-reverse md:flex-row"
             }, React.createElement(Filters$ReasonReactExamples.make, {
@@ -49,13 +63,14 @@ function Index$App(Props) {
                   timeline: timeline,
                   threshold: threshold
                 }), React.createElement(Chart$ReasonReactExamples.make, {
-                  data: data,
+                  data: match$2[0],
                   color: (function (param) {
                       return Data$ReasonReactExamples.$$Map.get(Data$ReasonReactExamples.colors, param);
                     }),
                   locations: locations,
-                  scale: match$2 ? /* linear */-325037595 : /* log */5395588,
-                  threshold: thresholdOr1
+                  scale: match$3 ? /* linear */-325037595 : /* log */5395588,
+                  threshold: thresholdOr1,
+                  formatLabel: match$2[1]
                 }));
 }
 

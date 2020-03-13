@@ -28,6 +28,7 @@ function Chart(Props) {
   var locations = Props.locations;
   var scale = Props.scale;
   var threshold = Props.threshold;
+  var formatLabel = Props.formatLabel;
   var divRef = React.useRef(null);
   var domain = /* array */[
     threshold === 0 ? 1 : threshold,
@@ -75,7 +76,9 @@ function Chart(Props) {
                                   if (match !== null) {
                                     return React.createElement("div", {
                                                 className: "tooltip flex flex-col border-solid border border-gray-800 rounded p-2"
-                                              }, match.map((function (payload) {
+                                              }, React.createElement("span", {
+                                                    className: "text-gray-200 font-bold"
+                                                  }, Curry._1(formatLabel, data.label)), match.map((function (payload) {
                                                       return React.createElement("span", {
                                                                   key: payload.dataKey,
                                                                   className: "tooltip-label"

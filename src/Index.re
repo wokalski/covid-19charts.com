@@ -5,7 +5,14 @@ module App = {
   let make = () => {
     let (locations, setLocations) =
       React.useState(() =>
-        [|"Germany", "Italy", "Japan", "China (Guangdong)", "Spain", "US (All regions)"|]
+        [|
+          "Germany",
+          "Italy",
+          "Japan",
+          "China (Guangdong)",
+          "Spain",
+          "US (All regions)",
+        |]
         |> Js.Array.map(Map.get(locations))
         |> Js.Array.map(({name: label} as value) =>
              {ReactSelect.label, value}
@@ -15,10 +22,17 @@ module App = {
     let timeline = React.useState(() => Filters.Day0);
     let threshold = React.useState(() => Some(17));
     let thresholdOr1 = Belt.Option.getWithDefault(threshold |> fst, 1);
-    let data =
+    let (data, formatLabel) =
       switch (timeline |> fst) {
-      | Filters.Day0 => alignToDay0(thresholdOr1)
-      | Dates => calendar
+      | Filters.Day0 => (
+          alignToDay0(thresholdOr1),
+          (
+            fun
+            | "1" => "1 day since first case"
+            | str => str ++ " days since first case"
+          ),
+        )
+      | Dates => (calendar, (str => str))
       };
     <div className="flex bg-gray-900 flex-col-reverse md:flex-row">
       <Filters locations setLocations allLocations scale timeline threshold />
@@ -26,6 +40,7 @@ module App = {
         data
         color={Map.get(colors)}
         locations
+        formatLabel
         scale={
           switch (scale |> fst) {
           | Filters.Logarithmic => `log

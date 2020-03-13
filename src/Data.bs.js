@@ -63,9 +63,6 @@ var calendar = days.map((function (day) {
         var row = { };
         row["name"] = day;
         countryIds.forEach((function (countryId) {
-                if (countryId === "US (All regions)") {
-                  console.log(data[countryId][day]);
-                }
                 row[locations[countryId].name] = data[countryId][day].toString();
                 return /* () */0;
               }));

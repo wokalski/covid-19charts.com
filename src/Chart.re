@@ -26,7 +26,7 @@ let calculateMaxValue = (locations, data) => {
 };
 
 [@react.component]
-let make = (~data, ~color, ~locations, ~scale, ~threshold) => {
+let make = (~data, ~color, ~locations, ~scale, ~threshold, ~formatLabel) => {
   let divRef = React.useRef(Js.Nullable.null);
   let domain =
     Some([|
@@ -72,6 +72,7 @@ let make = (~data, ~color, ~locations, ~scale, ~threshold) => {
             | Some(payload) =>
               <div
                 className="tooltip flex flex-col border-solid border border-gray-800 rounded p-2">
+                <span className="text-gray-200 font-bold"> {React.string(formatLabel(data##label))} </span>
                 {Js.Array.map(
                    payload => {
                      <span className="tooltip-label" key=payload##dataKey>
