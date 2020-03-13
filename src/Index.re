@@ -1,6 +1,21 @@
 open Data;
 
 module App = {
+  let ordinalSuffix = i => {
+    let j = i mod 10;
+    let k = i mod 100;
+    let i = Js.Int.toString(i);
+    if (j == 1 && k != 11) {
+      i ++ "st";
+    } else if (j == 2 && k != 12) {
+      i ++ "nd";
+    } else if (j == 3 && k != 13) {
+      i ++ "rd";
+    } else {
+      i ++ "th";
+    };
+  };
+
   [@react.component]
   let make = () => {
     let (locations, setLocations) =
@@ -28,8 +43,9 @@ module App = {
           alignToDay0(thresholdOr1),
           (
             fun
-            | "1" => "1 day since first case"
-            | str => str ++ " days since first case"
+            | "1" => "1 day since " ++ ordinalSuffix(thresholdOr1) ++ " case"
+            | str =>
+              str ++ " days since " ++ ordinalSuffix(thresholdOr1) ++ " case"
           ),
         )
       | Dates => (calendar, (str => str))

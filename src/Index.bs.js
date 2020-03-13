@@ -7,6 +7,21 @@ var Data$ReasonReactExamples = require("./Data.bs.js");
 var Chart$ReasonReactExamples = require("./Chart.bs.js");
 var Filters$ReasonReactExamples = require("./Filters.bs.js");
 
+function ordinalSuffix(i) {
+  var j = i % 10;
+  var k = i % 100;
+  var i$1 = i.toString();
+  if (j === 1 && k !== 11) {
+    return i$1 + "st";
+  } else if (j === 2 && k !== 12) {
+    return i$1 + "nd";
+  } else if (j === 3 && k !== 13) {
+    return i$1 + "rd";
+  } else {
+    return i$1 + "th";
+  }
+}
+
 function Index$App(Props) {
   var match = React.useState((function () {
           return /* array */[
@@ -46,9 +61,9 @@ function Index$App(Props) {
       Data$ReasonReactExamples.alignToDay0(thresholdOr1),
       (function (str) {
           if (str === "1") {
-            return "1 day since first case";
+            return "1 day since " + (ordinalSuffix(thresholdOr1) + " case");
           } else {
-            return str + " days since first case";
+            return str + (" days since " + (ordinalSuffix(thresholdOr1) + " case"));
           }
         })
     ];
@@ -75,6 +90,7 @@ function Index$App(Props) {
 }
 
 var App = {
+  ordinalSuffix: ordinalSuffix,
   make: Index$App
 };
 
