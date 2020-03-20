@@ -24,7 +24,7 @@ function ordinalSuffix(i) {
 
 function Index$App(Props) {
   var match = React.useState((function () {
-          return /* array */[
+          return [
                       "Germany",
                       "Italy",
                       "Japan",

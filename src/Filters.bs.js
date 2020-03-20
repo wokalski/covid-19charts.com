@@ -169,13 +169,13 @@ function Filters(Props) {
   var locations = Props.locations;
   var allLocations = Props.allLocations;
   var setLocations = Props.setLocations;
-  var match = Props.scale;
-  var setScale = match[1];
-  var match$1 = Props.timeline;
-  var setTimeline = match$1[1];
-  var timeline = match$1[0];
-  var match$2 = Props.threshold;
-  var setThreshold = match$2[1];
+  var param = Props.scale;
+  var param$1 = Props.timeline;
+  var param$2 = Props.threshold;
+  var setThreshold = param$2[1];
+  var setTimeline = param$1[1];
+  var timeline = param$1[0];
+  var setScale = param[1];
   return React.createElement("div", {
               className: "w-full md:w-64 p-4"
             }, React.createElement(Filters$Title, { }), React.createElement(Filters$Header, {
@@ -190,7 +190,7 @@ function Filters(Props) {
                   onChange: (function (newSelection) {
                       if (newSelection == null) {
                         return Curry._1(setLocations, (function (param) {
-                                      return /* array */[];
+                                      return [];
                                     }));
                       } else {
                         return Curry._1(setLocations, (function (param) {
@@ -201,7 +201,7 @@ function Filters(Props) {
                 }), React.createElement(Filters$Header, {
                   title: "Scale"
                 }), React.createElement(Filters$SegmentedControl, {
-                  allValues: /* array */[
+                  allValues: [
                     {
                       label: "Logarithmic",
                       value: /* Logarithmic */0
@@ -211,7 +211,7 @@ function Filters(Props) {
                       value: /* Linear */1
                     }
                   ],
-                  selectedIndex: match[0] ? 1 : 0,
+                  selectedIndex: param[0] ? 1 : 0,
                   onChange: (function (value, param) {
                       return Curry._1(setScale, (function (param) {
                                     return value;
@@ -220,7 +220,7 @@ function Filters(Props) {
                 }), React.createElement(Filters$Header, {
                   title: "Timeline"
                 }), React.createElement(Filters$SegmentedControl, {
-                  allValues: /* array */[
+                  allValues: [
                     {
                       label: "Align to day 0",
                       value: /* Day0 */0
@@ -240,7 +240,7 @@ function Filters(Props) {
                         title: "Threshold (# of cases)"
                       }), React.createElement(Filters$Input, {
                         id: "nr_of_cases",
-                        value: /* Number */Block.__(1, [match$2[0]]),
+                        value: /* Number */Block.__(1, [param$2[0]]),
                         onBlur: (function (prim) {
                             return /* () */0;
                           }),

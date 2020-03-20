@@ -30,7 +30,7 @@ function Chart(Props) {
   var threshold = Props.threshold;
   var formatLabel = Props.formatLabel;
   var divRef = React.useRef(null);
-  var domain = /* array */[
+  var domain = [
     threshold === 0 ? 1 : threshold,
     calculateMaxValue(locations, data)
   ];
@@ -47,7 +47,7 @@ function Chart(Props) {
                   }));
           }
           return ;
-        }), /* array */[]);
+        }), []);
   return React.createElement("div", {
               ref: divRef,
               className: "max-h-screen flex-1"
