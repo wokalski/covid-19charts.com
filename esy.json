@@ -10,12 +10,11 @@
     "ocaml": "4.6.x"
   },
   "devDependencies": {
-    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam#b1168b8",
-    "@opam/reason": "*",
+    "@opam/ocaml-lsp-server": "ocaml/ocaml-lsp:ocaml-lsp-server.opam#d57bd91",
+    "@esy-ocaml/reason": "*",
     "@opam/dune": "2.0.1"
   },
   "resolutions": {
-    "@opam/reason": "facebook/reason#b555665",
     "@opam/menhir": "20200123",
     "@opam/menhirSdk": "20200123",
     "@opam/menhirLib": "20200123"
