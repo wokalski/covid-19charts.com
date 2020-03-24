@@ -356,23 +356,6 @@ template {
  */
 
 /**
- * 1. Prevent padding and border from affecting element width
- * https://goo.gl/pYtbK7
- * 2. Change the default font family in all browsers (opinionated)
- */
-
-html {
-  box-sizing: border-box; /* 1 */
-  font-family: sans-serif; /* 2 */
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: inherit;
-}
-
-/**
  * Removes the default spacing and border for appropriate elements.
  */
 
@@ -393,7 +376,8 @@ pre {
 }
 
 button {
-  background: transparent;
+  background-color: transparent;
+  background-image: none;
   padding: 0;
 }
 
@@ -424,38 +408,50 @@ ul {
  */
 
 /**
- * 1. Use the system font stack as a sane default.
+ * 1. Use the user's configured `sans` font-family (with Tailwind's default
+ *    sans-serif font stack as a fallback) as a sane default.
  * 2. Use Tailwind's default "normal" line-height so the user isn't forced
- * to override it to ensure consistency even when using the default theme.
+ *    to override it to ensure consistency even when using the default theme.
  */
 
 html {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* 1 */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* 1 */
   line-height: 1.5; /* 2 */
 }
 
 /**
- * Allow adding a border to an element by just adding a border-width.
+ * 1. Prevent padding and border from affecting element width.
  *
- * By default, the way the browser specifies that an element should have no
- * border is by setting it's border-style to `none` in the user-agent
- * stylesheet.
+ *    We used to set this in the html element and inherit from
+ *    the parent element for everything else. This caused issues
+ *    in shadow-dom-enhanced elements like <details> where the content
+ *    is wrapped by a div with box-sizing set to `content-box`.
  *
- * In order to easily add borders to elements by just setting the `border-width`
- * property, we change the default border-style for all elements to `solid`, and
- * use border-width to hide them instead. This way our `border` utilities only
- * need to set the `border-width` property instead of the entire `border`
- * shorthand, making our border utilities much more straightforward to compose.
+ *    https://github.com/mozdevs/cssremedy/issues/4
  *
- * https://github.com/tailwindcss/tailwindcss/pull/116
+ *
+ * 2. Allow adding a border to an element by just adding a border-width.
+ *
+ *    By default, the way the browser specifies that an element should have no
+ *    border is by setting it's border-style to `none` in the user-agent
+ *    stylesheet.
+ *
+ *    In order to easily add borders to elements by just setting the `border-width`
+ *    property, we change the default border-style for all elements to `solid`, and
+ *    use border-width to hide them instead. This way our `border` utilities only
+ *    need to set the `border-width` property instead of the entire `border`
+ *    shorthand, making our border utilities much more straightforward to compose.
+ *
+ *    https://github.com/tailwindcss/tailwindcss/pull/116
  */
 
 *,
-*::before,
-*::after {
-  border-width: 0;
-  border-style: solid;
-  border-color: #e2e8f0;
+::before,
+::after {
+  box-sizing: border-box; /* 1 */
+  border-width: 0; /* 2 */
+  border-style: solid; /* 2 */
+  border-color: currentColor; /* 2 */
 }
 
 /*
@@ -600,49 +596,97 @@ video {
 }
 
 body {
-  background-color: #1a202c;
-}
-
-h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
-}
-
-h2 {
-  font-size: 1.25rem;
-}
-
-h3 {
-  font-size: 1.125rem;
+  background-color: #FFFFFF;
+  font-size: 16px;
 }
 
 a {
-  color: #a0aec0;
+  color: #000000;
   text-decoration: underline;
 }
 
-tspan {
+.radio-button-ring,.radio-button-ring-selected {
+  border-width: 2px;
+  border-radius: 9999px;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+          align-items: center;
+  width: 14px;
+  height: 14px;
+}
+
+.radio-button-ring {
+  border-color: #ACBBCB;
+}
+
+.radio-button-ring-selected {
+  border-color: #0099FF;
+}
+
+.radio-button-circle,.radio-button-circle-selected {
+  border-radius: 9999px;
+  width: 6px;
+  height: 6px;
+}
+
+.radio-button-circle {
+  background-color: #FFFFFF;
+}
+
+.radio-button-circle-selected {
+  background-color: #0099FF;
+}
+
+.legend-remove-button #Combined-Shape  {
+  color: #ACBBCB;
   fill: currentColor;
-  color: #718096;
 }
 
-.recharts-legend-item-text {
-  color: #e2e8f0;
+.legend-remove-button:hover #Combined-Shape {
+  color: #EC8787;
+  fill: currentColor;
 }
 
-.recharts-yAxis, .recharts-xAxis {
-  stroke-width: 2px;
-  stroke: currentColor;
-  color: #718096;
-}
-
-.tooltip {
-  background-color: #1a202c;
+.threshold-input {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  line-height: 1.25;
+  background-color: #F0F1F2;
+  color: #000000;
+  overflow: hidden;
+  font-size: 14px;
+  border-color: #F0F1F2;
   border-width: 1px;
+  outline: 0;
+  height: 29px;
+  padding: 2px 8px;
+  max-width: 60px;
+  border-radius: 4px;
 }
 
-.tooltip-label {
-  color: #e2e8f0;
+.threshold-input:focus {
+  border-color: #0099FF;
+}
+
+.recharts-cartesian-axis-tick-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.flex-basis-100 {
+  flex-basis: 100%;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
 }
 
 .container {
@@ -673,38 +717,16 @@ tspan {
   }
 }
 
-.appearance-none {
-  -webkit-appearance: none;
-     -moz-appearance: none;
-          appearance: none;
+.bg-white {
+  background-color: #FFFFFF;
 }
 
-.bg-gray-700 {
-  background-color: #4a5568;
-}
-
-.bg-gray-800 {
-  background-color: #2d3748;
-}
-
-.bg-gray-900 {
-  background-color: #1a202c;
-}
-
-.border-gray-700 {
-  border-color: #4a5568;
-}
-
-.border-gray-800 {
-  border-color: #2d3748;
+.border-lightgrayblue {
+  border-color: #DBE3EC;
 }
 
 .rounded {
   border-radius: 0.25rem;
-}
-
-.rounded-lg {
-  border-radius: 0.5rem;
 }
 
 .border-solid {
@@ -732,41 +754,51 @@ tspan {
           flex-direction: column-reverse;
 }
 
+.items-center {
+  -webkit-box-align: center;
+          align-items: center;
+}
+
+.justify-center {
+  -webkit-box-pack: center;
+          justify-content: center;
+}
+
 .flex-1 {
   -webkit-box-flex: 1;
           flex: 1 1 0%;
-}
-
-.font-light {
-  font-weight: 300;
 }
 
 .font-bold {
   font-weight: 700;
 }
 
-.leading-tight {
-  line-height: 1.25;
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.max-h-600 {
+  max-height: 600px;
 }
 
 .max-h-screen {
   max-height: 100vh;
 }
 
+.min-h-400 {
+  min-height: 400px;
+}
+
 .min-h-screen {
   min-height: 100vh;
 }
 
-.focus\:outline-none:focus {
-  outline: 0;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-}
-
 .overflow-scroll {
   overflow: scroll;
+}
+
+.p-1 {
+  padding: 0.25rem;
 }
 
 .p-2 {
@@ -787,44 +819,52 @@ tspan {
   padding-bottom: 0.75rem;
 }
 
-.pb-1 {
-  padding-bottom: 0.25rem;
+.pt-1 {
+  padding-top: 0.25rem;
 }
 
-.pt-2 {
-  padding-top: 0.5rem;
+.pl-2 {
+  padding-left: 0.5rem;
 }
 
 .pt-3 {
   padding-top: 0.75rem;
 }
 
-.text-gray-200 {
-  color: #edf2f7;
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.text-gray-300 {
-  color: #e2e8f0;
+.text-black {
+  color: #000000;
 }
 
-.text-gray-400 {
-  color: #cbd5e0;
+.text-base {
+  font-size: 14px;
 }
 
-.text-gray-500 {
-  color: #a0aec0;
+.text-md {
+  font-size: 16px;
 }
 
-.text-gray-600 {
-  color: #718096;
-}
-
-.text-sm {
-  font-size: 0.875rem;
+.text-big {
+  font-size: 20px;
 }
 
 .w-full {
   width: 100%;
+}
+
+.transform {
+  --transform-translate-x: 0;
+  --transform-translate-y: 0;
+  --transform-rotate: 0;
+  --transform-skew-x: 0;
+  --transform-skew-y: 0;
+  --transform-scale-x: 1;
+  --transform-scale-y: 1;
+  -webkit-transform: translateX(var(--transform-translate-x)) translateY(var(--transform-translate-y)) rotate(var(--transform-rotate)) skewX(var(--transform-skew-x)) skewY(var(--transform-skew-y)) scaleX(var(--transform-scale-x)) scaleY(var(--transform-scale-y));
+          transform: translateX(var(--transform-translate-x)) translateY(var(--transform-translate-y)) rotate(var(--transform-rotate)) skewX(var(--transform-skew-x)) skewY(var(--transform-skew-y)) scaleX(var(--transform-scale-x)) scaleY(var(--transform-scale-y));
 }
 
 @media (min-width: 768px) {
