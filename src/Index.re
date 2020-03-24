@@ -1,69 +1,76 @@
-open Data;
-
 module App = {
-  let ordinalSuffix = i => {
-    let j = i mod 10;
-    let k = i mod 100;
-    let i = Js.Int.toString(i);
-    if (j == 1 && k != 11) {
-      i ++ "st";
-    } else if (j == 2 && k != 12) {
-      i ++ "nd";
-    } else if (j == 3 && k != 13) {
-      i ++ "rd";
-    } else {
-      i ++ "th";
-    };
+  let useLocations = (~default) => {
+    let white = "#fff";
+    let black = "#000";
+    let fallbackColor = ("#878787", white);
+    let colors = [|
+      ("#a50026", white),
+      ("#fdae61", black),
+      ("#313695", white),
+      ("#d73027", white),
+      ("#fee090", black),
+      ("#abd9e9", black),
+      ("#f46d43", white),
+      ("#74add1", white),
+      ("#4575b4", white),
+      fallbackColor,
+    |];
+    let colorMaxIndex = Belt.Array.length(colors) - 1;
+
+    let (locations, setLocations) = React.useState(() => default);
+    (
+      Belt.Array.mapWithIndexU(
+        locations,
+        (. index, locationId) => {
+          let (primaryColor, secondaryColor) =
+            Belt.Array.getUnsafe(
+              colors,
+              Js.Math.min_int(index, colorMaxIndex),
+            );
+          {
+            Location.primaryColor,
+
+            secondaryColor,
+            text: Data.Map.get(Data.locations, locationId).name,
+            id: locationId,
+          };
+        },
+      ),
+      setLocations,
+    );
   };
 
   [@react.component]
   let make = () => {
     let (locations, setLocations) =
-      React.useState(() =>
-        [|
+      useLocations(
+        ~default=[|
+          "China (Guangdong)",
           "Germany",
           "Italy",
           "Japan",
-          "China (Guangdong)",
           "Spain",
           "US (All regions)",
-        |]
-        |> Js.Array.map(Map.get(locations))
-        |> Js.Array.map(({name: label} as value) =>
-             {ReactSelect.label, value}
-           )
+        |],
       );
     let scale = React.useState(() => Filters.Logarithmic);
-    let timeline = React.useState(() => Filters.Day0);
+    let timeline = React.useState(() => Filters.RelativeToThreshold);
     let threshold = React.useState(() => Some(17));
     let thresholdOr1 = Belt.Option.getWithDefault(threshold |> fst, 1);
-    let (data, formatLabel) =
-      switch (timeline |> fst) {
-      | Filters.Day0 => (
-          alignToDay0(thresholdOr1),
-          (
-            fun
-            | "1" => "1 day since " ++ ordinalSuffix(thresholdOr1) ++ " case"
-            | str =>
-              str ++ " days since " ++ ordinalSuffix(thresholdOr1) ++ " case"
-          ),
-        )
-      | Dates => (calendar, (str => str))
-      };
-    <div className="flex bg-gray-900 flex-col-reverse md:flex-row">
-      <Filters locations setLocations allLocations scale timeline threshold />
-      <Chart
-        data
-        color={Map.get(colors)}
+    <div className="flex bg-white flex-col-reverse md:flex-row">
+      <Filters
         locations
-        formatLabel
-        scale={
-          switch (scale |> fst) {
-          | Filters.Logarithmic => `log
-          | Linear => `linear
-          }
-        }
+        setLocations
+        allLocations=Data.allLocations
+        scale
+        timeline
+        threshold
+      />
+      <Chart
         threshold=thresholdOr1
+        timeline={timeline |> fst}
+        locations
+        scale={scale |> fst}
       />
     </div>;
   };

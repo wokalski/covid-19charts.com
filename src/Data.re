@@ -21,11 +21,6 @@ module Map: {
   let empty = Js.Dict.empty;
 };
 
-let randomColor = index => {
-  let random = 360. *. (Js.Int.toFloat(index) /. 100.);
-  {j|hsla($random,70%,70%,0.8)|j};
-};
-
 [@bs.val] external require: string => 'a = "require";
 
 type countryId = string;
@@ -45,27 +40,35 @@ let countryIds = Map.keys(locations);
 
 let dayToIndex =
   Js.Array.mapi((day, index) => {(day, index)}, days) |> Map.fromArray;
-let colors =
-  Map.keys(locations)
-  |> Js.Array.mapi((location, index) => (location, randomColor(index)))
-  |> Map.fromArray;
 
-let calendar = {
-  Js.Array.map(
-    day => {
-      let row = Js.Dict.empty();
-      Js.Dict.set(row, "name", day);
+type xValue =
+  | Date(Js.Date.t)
+  | Day(int);
+
+type item = {
+  x: xValue,
+  index: int,
+  values: Belt.HashMap.String.t(int),
+};
+
+type t = array(item);
+
+let calendar: t = {
+  Js.Array.mapi(
+    (day, index) => {
+      let values =
+        Belt.HashMap.String.make(~hintSize=Js.Array.length(countryIds));
       Js.Array.forEach(
         countryId => {
-          Js.Dict.set(
-            row,
+          Belt.HashMap.String.set(
+            values,
             Map.get(locations, countryId).name,
-            Map.get(Map.get(data, countryId), day) |> Js.Int.toString,
-          );
+            Map.get(Map.get(data, countryId), day),
+          )
         },
         countryIds,
       );
-      row;
+      {x: Date(Js.Date.fromString(day)), index, values};
     },
     days,
   );
@@ -82,10 +85,8 @@ let alignToDay0 = threshold => {
         |> Js.Array.sortInPlaceWith((a, b) => {compare(a |> fst, b |> fst)})
         |> Js.Array.map(((_, value)) => value)
         |> Js.Array.filter(value => value >= threshold)
-        |> Js.Array.mapi((value, index) => {
-             (Js.Int.toString(index), value)
-           })
-        |> Map.fromArray
+        |> Js.Array.mapi((value, index) => {(index, value)})
+        |> Belt.Map.Int.fromArray
       },
       data,
     );
@@ -93,28 +94,29 @@ let alignToDay0 = threshold => {
   Array.init(
     Js.Array.length(days),
     day => {
-      let row = Js.Dict.empty();
-      let day = Js.Int.toString(day);
-      Js.Dict.set(row, "name", day);
+      let values =
+        Belt.HashMap.String.make(~hintSize=Js.Array.length(countryIds));
       Js.Array.forEach(
         countryId => {
-          switch (Map.get_opt(Map.get(data, countryId), day)) {
+          switch (Belt.Map.Int.get(Map.get(data, countryId), day)) {
           | Some(number) =>
-            Js.Dict.set(
-              row,
+            Belt.HashMap.String.set(
+              values,
               Map.get(locations, countryId).name,
-              number |> Js.Int.toString,
+              number,
             )
           | None => ()
           }
         },
         countryIds,
       );
-      row;
+      {x: Day(day), index: day, values};
     },
   );
 };
 
 let allLocations =
   Map.entries(locations)
-  |> Js.Array.map(((label, value)) => {ReactSelect.label, value});
+  |> Js.Array.map(((locationId, value)) =>
+       {ReactSelect.label: value.name, value: locationId}
+     );

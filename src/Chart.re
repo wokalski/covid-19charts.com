@@ -1,17 +1,21 @@
-open BsRecharts;
+open Recharts;
+module R =
+  Recharts.Make({
+    type dataItem = Data.item;
+    type yValue = int;
+  });
 
 type domain;
 external int_to_domain: int => domain = "%identity";
 external string_to_domain: string => domain = "%identity";
 [@bs.get] external clientHeight: Dom.element => float = "clientHeight";
-external castData: array('a) => array(Js.Dict.t(int)) = "%identity";
 
 let calculateMaxValue = (locations, data) => {
   Js.Array.reduce(
-    (maxValue, row) => {
+    (maxValue, {Data.values: row}) => {
       Js.Array.reduce(
         (maxValue, location) => {
-          switch (Js.Dict.get(row, location.ReactSelect.label)) {
+          switch (Belt.HashMap.String.get(row, location.Location.id)) {
           | Some(x) => Js.Math.max_int(maxValue, x)
           | None => maxValue
           }
@@ -21,22 +25,56 @@ let calculateMaxValue = (locations, data) => {
       )
     },
     1,
-    castData(data),
+    data,
   );
 };
 
+let ordinalSuffix = i => {
+  let j = i mod 10;
+  let k = i mod 100;
+  let i = Js.Int.toString(i);
+  if (j == 1 && k != 11) {
+    i ++ "st";
+  } else if (j == 2 && k != 12) {
+    i ++ "nd";
+  } else if (j == 3 && k != 13) {
+    i ++ "rd";
+  } else {
+    i ++ "th";
+  };
+};
+
 [@react.component]
-let make = (~data, ~color, ~locations, ~scale, ~threshold, ~formatLabel) => {
+let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
+  let formatLabel =
+    switch (timeline) {
+    | Filters.RelativeToThreshold => (
+        fun
+        | "1" => "1 day since " ++ ordinalSuffix(threshold) ++ " case"
+        | str => str ++ " days since " ++ ordinalSuffix(threshold) ++ " case"
+      )
+    | _ => (x => x)
+    };
+  let displayGrowthBaseline =
+    switch (timeline, scale) {
+    | (Filters.RelativeToThreshold, Filters.Logarithmic) => true
+    | _ => false
+    };
+  let data =
+    switch (timeline) {
+    | Filters.RelativeToThreshold => Data.alignToDay0(threshold)
+    | CalendarDates => Data.calendar
+    };
+  let dailyGrowth = 1.33;
+  let exponent = {
+    let threshold = Js.Int.toFloat(threshold);
+    let maxValue = calculateMaxValue(locations, data);
+    log((maxValue |> Belt.Int.toFloat) /. threshold)
+    /. log(dailyGrowth)
+    |> Js.Math.ceil;
+  };
+
   let divRef = React.useRef(Js.Nullable.null);
-  let domain =
-    Some([|
-      if (threshold === 0) {
-        1 |> int_to_domain;
-      } else {
-        threshold |> int_to_domain;
-      },
-      calculateMaxValue(locations, data) |> int_to_domain,
-    |]);
   let (dot, setDot) = React.useState(() => true);
   React.useEffect1(
     () => {
@@ -49,55 +87,152 @@ let make = (~data, ~color, ~locations, ~scale, ~threshold, ~formatLabel) => {
     },
     [||],
   );
-  <div ref={ReactDOMRe.Ref.domRef(divRef)} className="max-h-screen flex-1">
-    <ResponsiveContainer minHeight=400 height={Prc(100.)} width={Prc(100.)}>
-      <LineChart
-        margin={"top": 20, "right": 50, "bottom": 20, "left": 0} data>
-        {Js.Array.map(
-           ({ReactSelect.label: dataKey}) =>
-             <Line
-               key=dataKey
-               _type=`monotone
-               dataKey
-               stroke={color(dataKey)}
-               strokeWidth=2
-               dot
-             />,
-           locations,
-         )
-         |> React.array}
-        <Tooltip
-          content={data => {
-            switch (Js.Null.toOption(data##payload)) {
-            | Some(payload) =>
-              <div
-                className="tooltip flex flex-col border-solid border border-gray-800 rounded p-2">
-                <span className="text-gray-200 font-bold"> {React.string(formatLabel(data##label))} </span>
-                {Js.Array.map(
-                   payload => {
-                     <span className="tooltip-label" key=payload##dataKey>
-                       <span
-                         style={ReactDOMRe.Style.make(
-                           ~color=payload##stroke,
-                           (),
-                         )}>
-                         {React.string(payload##name)}
-                       </span>
-                       {React.string(data##separator ++ payload##value)}
-                     </span>
-                   },
-                   payload,
-                 )
-                 |> React.array}
-              </div>
-            | None => React.null
+
+  <div
+    ref={ReactDOMRe.Ref.domRef(divRef)}
+    className="max-h-screen flex-1 flex flex-col justify-center flex-basis-100">
+    <div className="flex-1 min-h-400 max-h-600 flex-basis-100">
+      <R.ResponsiveContainer
+        minHeight=400. height={pct(100.)} width={pct(100.)}>
+        <R.LineChart
+          margin={"top": 20, "right": 50, "bottom": 20, "left": 0} data>
+          <R.CartesianGrid strokeDasharray="3 3" />
+          {displayGrowthBaseline
+             ? <R.Line
+                 dot={Dot.bool(false)}
+                 activeDot={Dot.bool(false)}
+                 name="daily-growth-indicator"
+                 _type=`monotone
+                 stroke=Colors.colors##black
+                 strokeWidth=2.
+                 strokeDasharray="3 3"
+                 dataKey={item =>
+                   if (item.Data.index <= exponent) {
+                     Js.Null.return(
+                       Js.Int.toFloat(threshold)
+                       *. Js.Math.pow_float(
+                            ~base=dailyGrowth,
+                            ~exp=item.Data.index |> Belt.Int.toFloat,
+                          )
+                       |> int_of_float,
+                     );
+                   } else {
+                     Js.null;
+                   }
+                 }
+               />
+             : React.null}
+          {Js.Array.map(
+             ({Location.id, primaryColor}) => {
+               <R.Line
+                 key=id
+                 name=id
+                 _type=`monotone
+                 dataKey={item =>
+                   switch (Belt.HashMap.String.get(item.Data.values, id)) {
+                   | Some(x) when x != 0 => Js.Null.return(x)
+                   | _ => Js.Null.empty
+                   }
+                 }
+                 stroke=primaryColor
+                 strokeWidth=2.
+                 dot={
+                   dot
+                     ? Dot.obj({
+                         "r": 3,
+                         "strokeWidth": 0,
+                         "fill": primaryColor,
+                       })
+                     : Dot.bool(false)
+                 }
+                 activeDot={Dot.obj({
+                   "strokeWidth": 2,
+                   "fill": Colors.colors##white,
+                   "stroke": primaryColor,
+                 })}
+               />
+             },
+             locations,
+           )
+           |> Js.Array.reverseInPlace
+           |> React.array}
+          <R.Tooltip
+            content={({R.Tooltip.payload, label, separator}) => {
+              switch (Js.Null.toOption(payload)) {
+              | Some(payload) =>
+                <div
+                  className="tooltip flex flex-col bg-white shadow-lg border-solid border border-lightgrayblue rounded p-2">
+                  <span className="text-base font-bold">
+                    {React.string(formatLabel(label))}
+                  </span>
+                  {payload
+                   |> Js.Array.filter(payload =>
+                        payload.R.Tooltip.name !== "daily-growth-indicator"
+                      )
+                   |> Js.Array.map(payload => {
+                        <span
+                          className="text-base font-bold"
+                          key={payload.R.Tooltip.name}>
+                          <span
+                            style={ReactDOMRe.Style.make(
+                              ~color=payload.stroke,
+                              (),
+                            )}>
+                            {React.string(payload.name)}
+                          </span>
+                          {React.string(
+                             separator ++ Js.Int.toString(payload.value),
+                           )}
+                        </span>
+                      })
+                   |> React.array}
+                </div>
+              | None => React.null
+              }
+            }}
+          />
+          <R.XAxis
+            minTickGap=70.
+            interval="preserveStartEnd"
+            dataKey={item =>
+              switch (item.Data.x) {
+              | Day(int) => R.XAxis.int(int)
+              | Date(date) =>
+                R.XAxis.string(Js.Date.toLocaleDateString(date))
+              }
             }
-          }}
-        />
-        <XAxis dataKey="name" padding={"left": 0, "right": 30} />
-        <YAxis _type=`number scale ?domain />
-        <Legend />
-      </LineChart>
-    </ResponsiveContainer>
+            padding={"left": 0, "right": 30}
+            axisLine=false
+            tickLine=false>
+            {switch (timeline) {
+             | Filters.RelativeToThreshold =>
+               let value =
+                 "Number of days since "
+                 ++ ordinalSuffix(threshold)
+                 ++ " case";
+               <R.Label
+                 style={"fontWeight": "bold", "fontSize": "14px"}
+                 value
+                 position="insideTop"
+                 offset=30.
+               />;
+             | _ => React.null
+             }}
+          </R.XAxis>
+          <R.YAxis
+            axisLine=false
+            tickLine=false
+            _type=`number
+            scale={
+              switch (scale) {
+              | Filters.Logarithmic => `log
+              | Linear => `linear
+              }
+            }
+            domain=("dataMin" |> R.YAxis.string, "dataMax" |> R.YAxis.string)
+          />
+        </R.LineChart>
+      </R.ResponsiveContainer>
+    </div>
   </div>;
 };

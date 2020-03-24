@@ -1,18 +1,21 @@
 'use strict';
 
-var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
-var Js_dict = require("bs-platform/lib/js/js_dict.js");
+var Js_math = require("bs-platform/lib/js/js_math.js");
 var Recharts = require("recharts");
-var BsRecharts__XAxis = require("@ahrefs/bs-recharts/src/BsRecharts__XAxis.bs.js");
-var BsRecharts__YAxis = require("@ahrefs/bs-recharts/src/BsRecharts__YAxis.bs.js");
-var BsRecharts__ResponsiveContainer = require("@ahrefs/bs-recharts/src/BsRecharts__ResponsiveContainer.bs.js");
+var Belt_HashMapString = require("bs-platform/lib/js/belt_HashMapString.js");
+var Data$ReasonReactExamples = require("./Data.bs.js");
+var Colors$ReasonReactExamples = require("./Colors.bs.js");
+var Recharts$ReasonReactExamples = require("./Recharts.bs.js");
+
+var R = Recharts$ReasonReactExamples.Make({ });
 
 function calculateMaxValue(locations, data) {
-  return data.reduce((function (maxValue, row) {
+  return data.reduce((function (maxValue, param) {
+                var row = param.values;
                 return locations.reduce((function (maxValue, $$location) {
-                              var match = Js_dict.get(row, $$location.label);
+                              var match = Belt_HashMapString.get(row, $$location.id);
                               if (match !== undefined) {
                                 return Math.max(maxValue, match);
                               } else {
@@ -22,18 +25,41 @@ function calculateMaxValue(locations, data) {
               }), 1);
 }
 
+function ordinalSuffix(i) {
+  var j = i % 10;
+  var k = i % 100;
+  var i$1 = i.toString();
+  if (j === 1 && k !== 11) {
+    return i$1 + "st";
+  } else if (j === 2 && k !== 12) {
+    return i$1 + "nd";
+  } else if (j === 3 && k !== 13) {
+    return i$1 + "rd";
+  } else {
+    return i$1 + "th";
+  }
+}
+
 function Chart(Props) {
-  var data = Props.data;
-  var color = Props.color;
+  var timeline = Props.timeline;
   var locations = Props.locations;
   var scale = Props.scale;
   var threshold = Props.threshold;
-  var formatLabel = Props.formatLabel;
+  var formatLabel = timeline ? (function (x) {
+        return x;
+      }) : (function (str) {
+        if (str === "1") {
+          return "1 day since " + (ordinalSuffix(threshold) + " case");
+        } else {
+          return str + (" days since " + (ordinalSuffix(threshold) + " case"));
+        }
+      });
+  var displayGrowthBaseline = timeline || scale ? false : true;
+  var data = timeline ? Data$ReasonReactExamples.calendar : Data$ReasonReactExamples.alignToDay0(threshold);
+  var threshold$1 = threshold;
+  var maxValue = calculateMaxValue(locations, data);
+  var exponent = Js_math.ceil(Math.log(maxValue / threshold$1) / Math.log(1.33));
   var divRef = React.useRef(null);
-  var domain = [
-    threshold === 0 ? 1 : threshold,
-    calculateMaxValue(locations, data)
-  ];
   var match = React.useState((function () {
           return true;
         }));
@@ -48,58 +74,157 @@ function Chart(Props) {
           }
           return ;
         }), []);
+  var tmp;
+  if (timeline) {
+    tmp = null;
+  } else {
+    var value = "Number of days since " + (ordinalSuffix(threshold) + " case");
+    tmp = React.createElement(Recharts.Label, {
+          style: {
+            fontWeight: "bold",
+            fontSize: "14px"
+          },
+          value: value,
+          position: "insideTop",
+          offset: 30
+        });
+  }
   return React.createElement("div", {
               ref: divRef,
-              className: "max-h-screen flex-1"
-            }, React.createElement(Recharts.ResponsiveContainer, BsRecharts__ResponsiveContainer.makeProps(undefined, undefined, /* Prc */Block.__(1, [100]), 400, undefined, /* Prc */Block.__(1, [100]), React.createElement(Recharts.LineChart, {
-                          data: data,
-                          margin: {
-                            top: 20,
-                            right: 50,
-                            bottom: 20,
-                            left: 0
-                          },
-                          children: null
-                        }, locations.map((function (param) {
-                                var dataKey = param.label;
-                                return React.createElement(Recharts.Line, {
-                                            type: "monotone",
-                                            dataKey: dataKey,
-                                            dot: dot,
-                                            stroke: Curry._1(color, dataKey),
-                                            strokeWidth: 2,
-                                            key: dataKey
-                                          });
-                              })), React.createElement(Recharts.Tooltip, {
-                              content: (function (data) {
-                                  var match = data.payload;
-                                  if (match !== null) {
-                                    return React.createElement("div", {
-                                                className: "tooltip flex flex-col border-solid border border-gray-800 rounded p-2"
-                                              }, React.createElement("span", {
-                                                    className: "text-gray-200 font-bold"
-                                                  }, Curry._1(formatLabel, data.label)), match.map((function (payload) {
-                                                      return React.createElement("span", {
-                                                                  key: payload.dataKey,
-                                                                  className: "tooltip-label"
-                                                                }, React.createElement("span", {
-                                                                      style: {
-                                                                        color: payload.stroke
-                                                                      }
-                                                                    }, payload.name), data.separator + payload.value);
-                                                    })));
-                                  } else {
-                                    return null;
-                                  }
-                                })
-                            }), React.createElement(Recharts.XAxis, BsRecharts__XAxis.makeProps(undefined, undefined, undefined, undefined, undefined, undefined, "name", undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, {
+              className: "max-h-screen flex-1 flex flex-col justify-center flex-basis-100"
+            }, React.createElement("div", {
+                  className: "flex-1 min-h-400 max-h-600 flex-basis-100"
+                }, React.createElement(Recharts.ResponsiveContainer, {
+                      minHeight: 400,
+                      height: Recharts$ReasonReactExamples.pct(100),
+                      width: Recharts$ReasonReactExamples.pct(100),
+                      children: React.createElement(Recharts.LineChart, {
+                            margin: {
+                              top: 20,
+                              right: 50,
+                              bottom: 20,
+                              left: 0
+                            },
+                            data: data,
+                            children: null
+                          }, React.createElement(Recharts.CartesianGrid, {
+                                strokeDasharray: "3 3"
+                              }), displayGrowthBaseline ? React.createElement(Recharts.Line, {
+                                  type: "monotone",
+                                  dataKey: (function (item) {
+                                      if (item.index <= exponent) {
+                                        return threshold * Math.pow(1.33, item.index) | 0;
+                                      } else {
+                                        return null;
+                                      }
+                                    }),
+                                  stroke: Colors$ReasonReactExamples.colors.black,
+                                  strokeWidth: 2,
+                                  strokeDasharray: "3 3",
+                                  dot: false,
+                                  activeDot: false,
+                                  name: "daily-growth-indicator"
+                                }) : null, locations.map((function (param) {
+                                    var id = param.id;
+                                    var primaryColor = param.primaryColor;
+                                    return React.createElement(Recharts.Line, {
+                                                type: "monotone",
+                                                dataKey: (function (item) {
+                                                    var match = Belt_HashMapString.get(item.values, id);
+                                                    if (match !== undefined) {
+                                                      var x = match;
+                                                      if (x !== 0) {
+                                                        return x;
+                                                      } else {
+                                                        return null;
+                                                      }
+                                                    } else {
+                                                      return null;
+                                                    }
+                                                  }),
+                                                stroke: primaryColor,
+                                                strokeWidth: 2,
+                                                dot: dot ? ({
+                                                      r: 3,
+                                                      strokeWidth: 0,
+                                                      fill: primaryColor
+                                                    }) : false,
+                                                activeDot: {
+                                                  strokeWidth: 2,
+                                                  fill: Colors$ReasonReactExamples.colors.white,
+                                                  stroke: primaryColor
+                                                },
+                                                name: id,
+                                                key: id
+                                              });
+                                  })).reverse(), React.createElement(Recharts.Tooltip, {
+                                content: (function (param) {
+                                    var separator = param.separator;
+                                    var payload = param.payload;
+                                    if (payload !== null) {
+                                      return React.createElement("div", {
+                                                  className: "tooltip flex flex-col bg-white shadow-lg border-solid border border-lightgrayblue rounded p-2"
+                                                }, React.createElement("span", {
+                                                      className: "text-base font-bold"
+                                                    }, Curry._1(formatLabel, param.label)), payload.filter((function (payload) {
+                                                          return payload.name !== "daily-growth-indicator";
+                                                        })).map((function (payload) {
+                                                        return React.createElement("span", {
+                                                                    key: payload.name,
+                                                                    className: "text-base font-bold"
+                                                                  }, React.createElement("span", {
+                                                                        style: {
+                                                                          color: payload.stroke
+                                                                        }
+                                                                      }, payload.name), separator + payload.value.toString());
+                                                      })));
+                                    } else {
+                                      return null;
+                                    }
+                                  })
+                              }), React.createElement(Recharts.XAxis, {
+                                padding: {
                                   left: 0,
                                   right: 30
-                                }, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, /* () */0)), React.createElement(Recharts.YAxis, BsRecharts__YAxis.makeProps(/* number */561678025, undefined, undefined, undefined, undefined, undefined, undefined, domain, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, scale, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, /* () */0)), React.createElement(Recharts.Legend, { })), /* () */0)));
+                                },
+                                dataKey: (function (item) {
+                                    var match = item.x;
+                                    if (match.tag) {
+                                      return match[0];
+                                    } else {
+                                      return match[0].toLocaleDateString();
+                                    }
+                                  }),
+                                axisLine: false,
+                                tickLine: false,
+                                interval: "preserveStartEnd",
+                                minTickGap: 70,
+                                children: tmp
+                              }), React.createElement(Recharts.YAxis, {
+                                type: "number",
+                                scale: (function () {
+                                      switch (scale ? /* linear */-325037595 : /* log */5395588) {
+                                        case 5395588 :
+                                            return "log";
+                                        case -325037595 :
+                                            return "linear";
+                                        
+                                      }
+                                    })(),
+                                domain: /* tuple */[
+                                  "dataMin",
+                                  "dataMax"
+                                ],
+                                axisLine: false,
+                                tickLine: false
+                              }))
+                    })));
 }
 
 var make = Chart;
 
+exports.R = R;
 exports.calculateMaxValue = calculateMaxValue;
+exports.ordinalSuffix = ordinalSuffix;
 exports.make = make;
-/* react Not a pure module */
+/* R Not a pure module */

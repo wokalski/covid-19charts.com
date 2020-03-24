@@ -2,43 +2,78 @@
 @tailwind  base;
 
 body {
-  @apply bg-gray-900; 
+  @apply bg-white; 
+  @apply text-md;
 }
 
-h1 {
-  @apply text-4xl font-bold;
-}
-h2 {
-  @apply text-xl;
-}
-h3 {
-  @apply text-lg;
-}
 a {
-  @apply text-gray-500 underline;
+  @apply text-black underline;
 }
 
-tspan {
-  @apply fill-current text-gray-600;
+.radio-button-ring,.radio-button-ring-selected {
+  @apply border-2 rounded-full flex justify-center items-center;
+  width: 14px;
+  height: 14px;
 }
 
-.recharts-legend-item-text {
-  @apply text-gray-300;
+.radio-button-ring {
+  @apply border-grayblue;
 }
 
-.recharts-yAxis, .recharts-xAxis {
-  stroke-width: 2px;
-  @apply stroke-current text-gray-600;
+.radio-button-ring-selected {
+  @apply border-activeblue;
 }
 
-.tooltip {
-  @apply bg-gray-900 border; 
+.radio-button-circle,.radio-button-circle-selected {
+  @apply rounded-full;
+  width: 6px;
+  height: 6px;
 }
 
-.tooltip-label {
-  @apply text-gray-300; 
+.radio-button-circle {
+  @apply bg-white;
 }
 
+.radio-button-circle-selected {
+  @apply bg-activeblue;
+}
+
+.legend-remove-button #Combined-Shape  {
+  @apply text-grayblue fill-current;
+}
+
+.legend-remove-button:hover #Combined-Shape {
+  color: #EC8787;
+  @apply fill-current;
+}
+
+.threshold-input {
+  @apply appearance-none leading-tight bg-bggray text-black overflow-hidden text-base border-bggray border outline-none;
+  height: 29px;
+  padding: 2px 8px;
+  max-width: 60px;
+  border-radius: 4px;
+}
+
+.threshold-input:focus {
+  @apply border-activeblue;
+}
+
+.recharts-cartesian-axis-tick-value {
+  @apply text-base font-bold;
+}
+
+.flex-basis-100 {
+  flex-basis: 100%;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0; 
+}
 
 @tailwind  components;
 /* purgecss end ignore */

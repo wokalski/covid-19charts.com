@@ -1,5 +1,8 @@
+var colors = require("./src/Colors.bs.js");
+
 module.exports = {
   theme: {
+    ...colors,
     screens: {
       sm: '640px',
       md: '768px',
@@ -12,5 +15,29 @@ module.exports = {
       '2': '2px',
       '4': '4px',
     },
+    fontSize: {
+      sm: '12px',
+      base: '14px',
+      md: '16px',
+      big: '20px',
+    },
+    maxHeight: {
+     '0': '0',
+     '1/4': '25%',
+     '1/2': '50%',
+     '3/4': '75%',
+     'full': '100%',
+     '600': '600px',
+     'screen': '100vh',
+    },
+    minHeight: {
+     '0': '0',
+     '1/4': '25%',
+     '1/2': '50%',
+     '3/4': '75%',
+     'full': '100%',
+     '400': '400px',
+     'screen': '100vh',
+    }
   }
 }

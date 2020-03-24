@@ -3,9 +3,12 @@
 var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
+var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Js_option = require("bs-platform/lib/js/js_option.js");
+var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Pervasives = require("bs-platform/lib/js/pervasives.js");
 var ReactSelect = require("react-select");
+var Colors$ReasonReactExamples = require("./Colors.bs.js");
 
 function Filters$Input(Props) {
   var id = Props.id;
@@ -42,7 +45,7 @@ function Filters$Input(Props) {
     
   }
   return React.createElement("input", {
-              className: "appearance-none leading-tight focus:outline-none placeholder-dimmed bg-gray-800 rounded-lg overflow-hidden border border-solid border-gray-700 p-2 text-gray-400 text-sm font-light",
+              className: "threshold-input",
               id: id,
               placeholder: label,
               type: tmp,
@@ -56,74 +59,37 @@ var Input = {
   make: Filters$Input
 };
 
-function Filters$SegmentedControl$Button(Props) {
+function Filters$H1(Props) {
   var text = Props.text;
-  var isSelected = Props.isSelected;
-  var onClick = Props.onClick;
-  return React.createElement("button", {
-              className: (
-                isSelected ? "bg-gray-700 text-gray-400" : "bg-gray-800 text-gray-500"
-              ) + " text-sm flex-1 py-1 font-light",
-              onClick: (function ($$event) {
-                  Curry._1(onClick, /* () */0);
-                  $$event.preventDefault();
-                  return /* () */0;
-                })
+  return React.createElement("h1", {
+              className: "text-big font-bold"
             }, text);
 }
 
-var Button = {
-  make: Filters$SegmentedControl$Button
+var H1 = {
+  make: Filters$H1
 };
 
-function Filters$SegmentedControl(Props) {
-  var allValues = Props.allValues;
-  var selectedIndex = Props.selectedIndex;
-  var onChange = Props.onChange;
-  return React.createElement("div", {
-              className: "flex bg-gray-800 rounded-lg overflow-hidden border border-solid border-gray-700"
-            }, allValues.map((function (param, index) {
-                    var value = param.value;
-                    var label = param.label;
-                    return React.createElement(Filters$SegmentedControl$Button, {
-                                text: label,
-                                isSelected: selectedIndex === index,
-                                onClick: (function (param) {
-                                    return Curry._2(onChange, value, index);
-                                  }),
-                                key: label
-                              });
-                  })));
+function Filters$H2(Props) {
+  var text = Props.text;
+  return React.createElement("h2", {
+              className: "text-md font-bold pt-3"
+            }, text);
 }
 
-var SegmentedControl = {
-  Button: Button,
-  make: Filters$SegmentedControl
+var H2 = {
+  make: Filters$H2
 };
 
-function Filters$Header(Props) {
-  var title = Props.title;
-  return React.createElement("div", {
-              className: "pt-2 pb-1"
-            }, React.createElement("span", {
-                  className: "text-gray-600 text-sm"
-                }, title));
+function Filters$P(Props) {
+  var text = Props.text;
+  return React.createElement("p", {
+              className: "text-base font-regular"
+            }, text);
 }
 
-var Header = {
-  make: Filters$Header
-};
-
-function Filters$Title(Props) {
-  return React.createElement("div", undefined, React.createElement("h2", {
-                  className: "text-gray-300 pb-1"
-                }, "Number of COVID-19 cases per location."), React.createElement("span", {
-                  className: "text-gray-300 text-md pt-3"
-                }, "The single most important chart to help you understand the COVID-19 outlook for your location."));
-}
-
-var Title = {
-  make: Filters$Title
+var P = {
+  make: Filters$P
 };
 
 function Filters$Footer$A(Props) {
@@ -141,19 +107,17 @@ var A = {
 
 function Filters$Footer(Props) {
   return React.createElement("div", {
-              className: "py-3 overflow-scroll"
-            }, React.createElement("div", undefined, React.createElement("span", {
-                      className: "text-gray-400 text-sm"
-                    }, "Created by ", React.createElement(Filters$Footer$A, {
+              className: "py-3 overflow-scroll text-base"
+            }, React.createElement("div", undefined, React.createElement("span", undefined, "Created by ", React.createElement(Filters$Footer$A, {
                           href: "https://twitter.com/wokalski",
                           str: "Wojtek Czekalski"
                         }))), React.createElement("div", undefined, React.createElement("span", {
-                      className: "text-gray-400 text-sm"
+                      className: "text-gray-400 text-base"
                     }, "Data provided by ", React.createElement(Filters$Footer$A, {
                           href: "https://github.com/CSSEGISandData/COVID-19",
                           str: "CSSE at Johns Hopkins University"
                         }))), React.createElement("div", undefined, React.createElement("span", {
-                      className: "text-gray-400 text-sm"
+                      className: "text-gray-400 text-base"
                     }, "Contribute on ", React.createElement(Filters$Footer$A, {
                           href: "https://github.com/wokalski/COVID-19charts.com",
                           str: "Github"
@@ -165,101 +129,335 @@ var Footer = {
   make: Filters$Footer
 };
 
+function Filters$MultiValueContainer(Props) {
+  var children = Props.children;
+  return React.createElement("div", undefined, children);
+}
+
+var MultiValueContainer = {
+  make: Filters$MultiValueContainer
+};
+
+function Filters$Radio$Circle(Props) {
+  var selected = Props.selected;
+  var selected$1 = selected ? "-selected" : "";
+  return React.createElement("div", {
+              className: "radio-button-ring" + selected$1
+            }, React.createElement("div", {
+                  className: "radio-button-circle" + selected$1
+                }));
+}
+
+var Circle = {
+  make: Filters$Radio$Circle
+};
+
+function Filters$Radio(Props) {
+  var values = Props.values;
+  var selectedValue = Props.selectedValue;
+  var format = Props.format;
+  var onChange = Props.onChange;
+  return React.createElement("div", {
+              className: "flex flex-col"
+            }, Belt_Array.mapU(values, (function (value) {
+                    var text = Curry._1(format, value);
+                    var selected = Caml_obj.caml_equal(value, selectedValue);
+                    var fontWeight = selected ? "font-bold" : "font-regular";
+                    return React.createElement("button", {
+                                className: "flex items-center py-1",
+                                onClick: (function (param) {
+                                    return Curry._1(onChange, value);
+                                  })
+                              }, React.createElement(Filters$Radio$Circle, {
+                                    selected: Caml_obj.caml_equal(value, selectedValue)
+                                  }), React.createElement("span", {
+                                    className: "text-black text-base pl-2 " + fontWeight
+                                  }, text));
+                  })));
+}
+
+var Radio = {
+  Circle: Circle,
+  make: Filters$Radio
+};
+
+function Filters$RadioSection(Props) {
+  var text = Props.text;
+  var values = Props.values;
+  var selectedValue = Props.selectedValue;
+  var format = Props.format;
+  var onChange = Props.onChange;
+  return React.createElement("div", undefined, React.createElement(Filters$H2, {
+                  text: text
+                }), React.createElement(Filters$Radio, {
+                  values: values,
+                  selectedValue: selectedValue,
+                  format: format,
+                  onChange: onChange
+                }));
+}
+
+var RadioSection = {
+  make: Filters$RadioSection
+};
+
+function Filters$Locations$Remove(Props) {
+  return React.createElement("svg", {
+              className: "legend-remove-button",
+              height: "14px",
+              width: "14px",
+              version: "1.1",
+              viewBox: "0 0 14 14",
+              xmlns: "http://www.w3.org/2000/svg"
+            }, React.createElement("defs", undefined), React.createElement("g", {
+                  id: "Page-1",
+                  fill: "none",
+                  fillRule: "evenodd",
+                  stroke: "none",
+                  strokeWidth: "1"
+                }, React.createElement("g", {
+                      id: "Desktop",
+                      transform: "translate(-575.000000, -253.000000)"
+                    }, React.createElement("g", {
+                          id: "Group-2",
+                          transform: "translate(572.000000, 250.000000)"
+                        }, React.createElement("g", {
+                              id: "Group-3"
+                            }, React.createElement("rect", {
+                                  id: "Rectangle-2",
+                                  height: "14",
+                                  width: "14",
+                                  x: "3",
+                                  y: "3"
+                                }), React.createElement("path", {
+                                  id: "Combined-Shape",
+                                  d: "M11.8994949,7.89949494 L14.8994949,7.89949494 C16.0040644,7.89949494 16.8994949,8.79492544 16.8994949,9.89949494 C16.8994949,11.0040644 16.0040644,11.8994949 14.8994949,11.8994949 L11.8994949,11.8994949 L11.8994949,14.8994949 C11.8994949,16.0040644 11.0040644,16.8994949 9.89949494,16.8994949 C8.79492544,16.8994949 7.89949494,16.0040644 7.89949494,14.8994949 L7.89949494,11.8994949 L4.89949494,11.8994949 C3.79492544,11.8994949 2.89949494,11.0040644 2.89949494,9.89949494 C2.89949494,8.79492544 3.79492544,7.89949494 4.89949494,7.89949494 L7.89949494,7.89949494 L7.89949494,4.89949494 C7.89949494,3.79492544 8.79492544,2.89949494 9.89949494,2.89949494 C11.0040644,2.89949494 11.8994949,3.79492544 11.8994949,4.89949494 L11.8994949,7.89949494 Z",
+                                  transform: "translate(9.899495, 9.899495) rotate(45.000000) translate(-9.899495, -9.899495) "
+                                }))))));
+}
+
+var Remove = {
+  make: Filters$Locations$Remove
+};
+
+function Filters$Locations$Button(Props) {
+  var param = Props.location;
+  var onClick = Props.onClick;
+  var id = param.id;
+  return React.createElement("button", {
+              className: "flex items-center py-1 location-button",
+              onClick: (function (param) {
+                  return Curry._1(onClick, id);
+                })
+            }, React.createElement(Filters$Locations$Remove, { }), React.createElement("span", {
+                  className: "text-base font-bold ml-2 rounded p-1",
+                  style: {
+                    backgroundColor: param.primaryColor,
+                    color: param.secondaryColor
+                  }
+                }, param.text));
+}
+
+var Button = {
+  make: Filters$Locations$Button
+};
+
+function Filters$Locations(Props) {
+  var allLocations = Props.allLocations;
+  var locations = Props.locations;
+  var setLocations = Props.setLocations;
+  return React.createElement("div", undefined, React.createElement(Filters$H2, {
+                  text: "Locations"
+                }), Belt_Array.mapU(locations, (function ($$location) {
+                    return React.createElement(Filters$Locations$Button, {
+                                location: $$location,
+                                onClick: (function (removedId) {
+                                    return Curry._1(setLocations, (function (locations) {
+                                                  return locations.filter((function (id) {
+                                                                return id !== removedId;
+                                                              }));
+                                                }));
+                                  })
+                              });
+                  })), React.createElement("div", {
+                  className: "pt-1"
+                }, React.createElement(ReactSelect.default, {
+                      components: {
+                        IndicatorSeparator: null
+                      },
+                      styles: {
+                        control: (function (base) {
+                            return Object.assign(base, {
+                                        color: Colors$ReasonReactExamples.colors.fggray,
+                                        fontWeight: "regular",
+                                        flex: "1",
+                                        width: "130px",
+                                        minHeight: "29px",
+                                        height: "29px",
+                                        fontSize: "14px",
+                                        border: 0,
+                                        backgroundColor: Colors$ReasonReactExamples.colors.bggray,
+                                        borderRadius: "4px"
+                                      });
+                          }),
+                        option: (function (base) {
+                            return Object.assign(base, {
+                                        fontSize: "14px"
+                                      });
+                          }),
+                        noOptionsMessage: (function (base) {
+                            return Object.assign(base, {
+                                        fontSize: "14px"
+                                      });
+                          })
+                      },
+                      controlShouldRenderValue: false,
+                      value: Belt_Array.mapU(locations, (function (param) {
+                              return {
+                                      value: param.id,
+                                      label: param.text
+                                    };
+                            })),
+                      isMulti: true,
+                      name: "Locations",
+                      options: allLocations,
+                      placeholder: "Add location",
+                      isClearable: false,
+                      onChange: (function (newSelection) {
+                          if (newSelection == null) {
+                            return Curry._1(setLocations, (function (param) {
+                                          return [];
+                                        }));
+                          } else {
+                            return Curry._1(setLocations, (function (param) {
+                                          return Belt_Array.mapU(newSelection, (function (param) {
+                                                        return param.value;
+                                                      }));
+                                        }));
+                          }
+                        }),
+                      noOptionsMessage: (function (param) {
+                          return "Unknown location";
+                        })
+                    })));
+}
+
+var Locations = {
+  Remove: Remove,
+  Button: Button,
+  make: Filters$Locations
+};
+
+function Filters$ThresholdInput(Props) {
+  var param = Props.threshold;
+  var setThreshold = param[1];
+  return React.createElement("div", undefined, React.createElement(Filters$H2, {
+                  text: "Threshold (# of cases)"
+                }), React.createElement("div", {
+                  className: "pt-1"
+                }, React.createElement(Filters$Input, {
+                      id: "nr_of_cases",
+                      value: /* Number */Block.__(1, [param[0]]),
+                      onBlur: (function (prim) {
+                          return /* () */0;
+                        }),
+                      onChange: (function (ev) {
+                          var value = Pervasives.int_of_string_opt(ev.target.value);
+                          return Curry._1(setThreshold, (function (param) {
+                                        return value;
+                                      }));
+                        }),
+                      label: "1"
+                    })));
+}
+
+var ThresholdInput = {
+  make: Filters$ThresholdInput
+};
+
 function Filters(Props) {
   var locations = Props.locations;
   var allLocations = Props.allLocations;
   var setLocations = Props.setLocations;
   var param = Props.scale;
   var param$1 = Props.timeline;
-  var param$2 = Props.threshold;
-  var setThreshold = param$2[1];
+  var threshold = Props.threshold;
   var setTimeline = param$1[1];
-  var timeline = param$1[0];
   var setScale = param[1];
   return React.createElement("div", {
               className: "w-full md:w-64 p-4"
-            }, React.createElement(Filters$Title, { }), React.createElement(Filters$Header, {
-                  title: "Locations"
-                }), React.createElement(ReactSelect.default, {
-                  defaultValue: locations,
-                  isMulti: true,
-                  name: "Locations",
-                  options: allLocations,
-                  placeholder: "Select",
-                  isClearable: false,
-                  onChange: (function (newSelection) {
-                      if (newSelection == null) {
-                        return Curry._1(setLocations, (function (param) {
-                                      return [];
-                                    }));
+            }, React.createElement(Filters$H1, {
+                  text: "Stay at home"
+                }), React.createElement(Filters$P, {
+                  text: "Most important charts to help you understand the COVID-19 outlook for your location."
+                }), React.createElement(Filters$RadioSection, {
+                  text: "Chart type",
+                  values: [/* NumberOfCases */0],
+                  selectedValue: /* NumberOfCases */0,
+                  format: (function (param) {
+                      return "Number of cases";
+                    }),
+                  onChange: (function (prim) {
+                      return /* () */0;
+                    })
+                }), React.createElement(Filters$RadioSection, {
+                  text: "Scale",
+                  values: [
+                    /* Logarithmic */0,
+                    /* Linear */1
+                  ],
+                  selectedValue: param[0],
+                  format: (function (param) {
+                      if (param) {
+                        return "Linear";
                       } else {
-                        return Curry._1(setLocations, (function (param) {
-                                      return newSelection;
-                                    }));
+                        return "Logarithmic";
                       }
-                    })
-                }), React.createElement(Filters$Header, {
-                  title: "Scale"
-                }), React.createElement(Filters$SegmentedControl, {
-                  allValues: [
-                    {
-                      label: "Logarithmic",
-                      value: /* Logarithmic */0
-                    },
-                    {
-                      label: "Linear",
-                      value: /* Linear */1
-                    }
-                  ],
-                  selectedIndex: param[0] ? 1 : 0,
-                  onChange: (function (value, param) {
+                    }),
+                  onChange: (function (scale) {
                       return Curry._1(setScale, (function (param) {
-                                    return value;
+                                    return scale;
                                   }));
                     })
-                }), React.createElement(Filters$Header, {
-                  title: "Timeline"
-                }), React.createElement(Filters$SegmentedControl, {
-                  allValues: [
-                    {
-                      label: "Align to day 0",
-                      value: /* Day0 */0
-                    },
-                    {
-                      label: "Dates",
-                      value: /* Dates */1
-                    }
+                }), React.createElement(Filters$Locations, {
+                  allLocations: allLocations,
+                  locations: locations,
+                  setLocations: setLocations
+                }), React.createElement(Filters$RadioSection, {
+                  text: "Timeline",
+                  values: [
+                    /* RelativeToThreshold */0,
+                    /* CalendarDates */1
                   ],
-                  selectedIndex: timeline ? 1 : 0,
-                  onChange: (function (value, param) {
+                  selectedValue: param$1[0],
+                  format: (function (param) {
+                      if (param) {
+                        return "Calendar dates";
+                      } else {
+                        return "Relative to threshold";
+                      }
+                    }),
+                  onChange: (function (timeline) {
                       return Curry._1(setTimeline, (function (param) {
-                                    return value;
+                                    return timeline;
                                   }));
                     })
-                }), timeline ? null : React.createElement(React.Fragment, undefined, React.createElement(Filters$Header, {
-                        title: "Threshold (# of cases)"
-                      }), React.createElement(Filters$Input, {
-                        id: "nr_of_cases",
-                        value: /* Number */Block.__(1, [param$2[0]]),
-                        onBlur: (function (prim) {
-                            return /* () */0;
-                          }),
-                        onChange: (function (ev) {
-                            var value = Pervasives.int_of_string_opt(ev.target.value);
-                            return Curry._1(setThreshold, (function (param) {
-                                          return value;
-                                        }));
-                          }),
-                        label: "Threshold"
-                      })), React.createElement(Filters$Footer, { }));
+                }), React.createElement(Filters$ThresholdInput, {
+                  threshold: threshold
+                }), React.createElement(Filters$Footer, { }));
 }
 
 var make = Filters;
 
 exports.Input = Input;
-exports.SegmentedControl = SegmentedControl;
-exports.Header = Header;
-exports.Title = Title;
+exports.H1 = H1;
+exports.H2 = H2;
+exports.P = P;
 exports.Footer = Footer;
+exports.MultiValueContainer = MultiValueContainer;
+exports.Radio = Radio;
+exports.RadioSection = RadioSection;
+exports.Locations = Locations;
+exports.ThresholdInput = ThresholdInput;
 exports.make = make;
 /* react Not a pure module */

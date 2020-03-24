@@ -6,8 +6,10 @@ type selectOption('a) = {
 [@bs.module "react-select"] [@react.component]
 external make:
   (
+    ~components: Js.t(_)=?,
     ~styles: Js.t({..})=?,
-    ~defaultValue: array(selectOption('a))=?,
+    ~controlShouldRenderValue: bool=?,
+    ~value: array(selectOption('a))=?,
     ~isMulti: bool=?,
     ~name: string=?,
     ~options: array(selectOption('a)),
@@ -18,8 +20,8 @@ external make:
     ~maxHeight: int=?,
     ~placeholder: string=?,
     ~isClearable: bool=?,
-    ~onChange: Js.Nullable.t(array(selectOption('a))) => unit=?
+    ~onChange: Js.Nullable.t(array(selectOption('a))) => unit=?,
+    ~noOptionsMessage: unit => option(React.element)
   ) =>
   React.element =
   "default";
-

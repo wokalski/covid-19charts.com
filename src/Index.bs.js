@@ -1,75 +1,99 @@
 'use strict';
 
 var React = require("react");
+var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 var Belt_Option = require("bs-platform/lib/js/belt_Option.js");
 var Data$ReasonReactExamples = require("./Data.bs.js");
 var Chart$ReasonReactExamples = require("./Chart.bs.js");
 var Filters$ReasonReactExamples = require("./Filters.bs.js");
 
-function ordinalSuffix(i) {
-  var j = i % 10;
-  var k = i % 100;
-  var i$1 = i.toString();
-  if (j === 1 && k !== 11) {
-    return i$1 + "st";
-  } else if (j === 2 && k !== 12) {
-    return i$1 + "nd";
-  } else if (j === 3 && k !== 13) {
-    return i$1 + "rd";
-  } else {
-    return i$1 + "th";
-  }
+function useLocations($$default) {
+  var white = "#fff";
+  var black = "#000";
+  var fallbackColor = /* tuple */[
+    "#878787",
+    white
+  ];
+  var colors = [
+    /* tuple */[
+      "#a50026",
+      white
+    ],
+    /* tuple */[
+      "#fdae61",
+      black
+    ],
+    /* tuple */[
+      "#313695",
+      white
+    ],
+    /* tuple */[
+      "#d73027",
+      white
+    ],
+    /* tuple */[
+      "#fee090",
+      black
+    ],
+    /* tuple */[
+      "#abd9e9",
+      black
+    ],
+    /* tuple */[
+      "#f46d43",
+      white
+    ],
+    /* tuple */[
+      "#74add1",
+      white
+    ],
+    /* tuple */[
+      "#4575b4",
+      white
+    ],
+    fallbackColor
+  ];
+  var colorMaxIndex = colors.length - 1 | 0;
+  var match = React.useState((function () {
+          return $$default;
+        }));
+  return /* tuple */[
+          Belt_Array.mapWithIndexU(match[0], (function (index, locationId) {
+                  var match = colors[Math.min(index, colorMaxIndex)];
+                  return {
+                          primaryColor: match[0],
+                          secondaryColor: match[1],
+                          text: Data$ReasonReactExamples.$$Map.get(Data$ReasonReactExamples.locations, locationId).name,
+                          id: locationId
+                        };
+                })),
+          match[1]
+        ];
 }
 
 function Index$App(Props) {
-  var match = React.useState((function () {
-          return [
-                      "Germany",
-                      "Italy",
-                      "Japan",
-                      "China (Guangdong)",
-                      "Spain",
-                      "US (All regions)"
-                    ].map((function (param) {
-                          return Data$ReasonReactExamples.$$Map.get(Data$ReasonReactExamples.locations, param);
-                        })).map((function (value) {
-                        return {
-                                value: value,
-                                label: value.name
-                              };
-                      }));
-        }));
+  var match = useLocations([
+        "China (Guangdong)",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Spain",
+        "US (All regions)"
+      ]);
   var locations = match[0];
   var scale = React.useState((function () {
           return /* Logarithmic */0;
         }));
   var timeline = React.useState((function () {
-          return /* Day0 */0;
+          return /* RelativeToThreshold */0;
         }));
   var threshold = React.useState((function () {
           return 17;
         }));
   var thresholdOr1 = Belt_Option.getWithDefault(threshold[0], 1);
-  var match$1 = timeline[0];
-  var match$2 = match$1 ? /* tuple */[
-      Data$ReasonReactExamples.calendar,
-      (function (str) {
-          return str;
-        })
-    ] : /* tuple */[
-      Data$ReasonReactExamples.alignToDay0(thresholdOr1),
-      (function (str) {
-          if (str === "1") {
-            return "1 day since " + (ordinalSuffix(thresholdOr1) + " case");
-          } else {
-            return str + (" days since " + (ordinalSuffix(thresholdOr1) + " case"));
-          }
-        })
-    ];
-  var match$3 = scale[0];
   return React.createElement("div", {
-              className: "flex bg-gray-900 flex-col-reverse md:flex-row"
+              className: "flex bg-white flex-col-reverse md:flex-row"
             }, React.createElement(Filters$ReasonReactExamples.make, {
                   locations: locations,
                   allLocations: Data$ReasonReactExamples.allLocations,
@@ -78,19 +102,15 @@ function Index$App(Props) {
                   timeline: timeline,
                   threshold: threshold
                 }), React.createElement(Chart$ReasonReactExamples.make, {
-                  data: match$2[0],
-                  color: (function (param) {
-                      return Data$ReasonReactExamples.$$Map.get(Data$ReasonReactExamples.colors, param);
-                    }),
+                  timeline: timeline[0],
                   locations: locations,
-                  scale: match$3 ? /* linear */-325037595 : /* log */5395588,
-                  threshold: thresholdOr1,
-                  formatLabel: match$2[1]
+                  scale: scale[0],
+                  threshold: thresholdOr1
                 }));
 }
 
 var App = {
-  ordinalSuffix: ordinalSuffix,
+  useLocations: useLocations,
   make: Index$App
 };
 
