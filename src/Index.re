@@ -17,7 +17,12 @@ module App = {
     |];
     let colorMaxIndex = Belt.Array.length(colors) - 1;
 
-    let (locations, setLocations) = React.useState(() => default);
+    let (locations, setLocations) =
+      UseQueryParam.hook(
+        () => default,
+        ~queryFragment="loc",
+        ~coder=SerializeQueryParam.stringArray,
+      );
     (
       Belt.Array.mapWithIndexU(
         locations,
@@ -40,6 +45,21 @@ module App = {
     );
   };
 
+  let useStringQueryParamState = (initial, ~queryFragment, ~encode, ~decode) => {
+    UseQueryParam.hook(
+      initial,
+      ~queryFragment,
+      ~coder={
+        encode: x => {
+          SerializeQueryParam.string.encode(encode(x));
+        },
+        decode: x =>
+          SerializeQueryParam.string.decode(x)
+          |> Js.Option.andThen((. x) => {decode(x)}),
+      },
+    );
+  };
+
   [@react.component]
   let make = () => {
     let (locations, setLocations) =
@@ -53,9 +73,48 @@ module App = {
           "US (All regions)",
         |],
       );
-    let scale = React.useState(() => Filters.Logarithmic);
-    let timeline = React.useState(() => Filters.RelativeToThreshold);
-    let threshold = React.useState(() => Some(17));
+    let scale =
+      useStringQueryParamState(
+        () => Filters.Logarithmic,
+        ~queryFragment="scale",
+        ~encode=
+          fun
+          | Logarithmic => "log"
+          | Linear => "linear",
+        ~decode=
+          fun
+          | "log" => Some(Filters.Logarithmic)
+          | "linear" => Some(Linear)
+          | _ => None,
+      );
+
+    let timeline =
+      useStringQueryParamState(
+        () => Filters.RelativeToThreshold,
+        ~queryFragment="timeline",
+        ~encode=
+          fun
+          | RelativeToThreshold => "relative"
+          | CalendarDates => "calendar",
+        ~decode=
+          fun
+          | "relative" => Some(Filters.RelativeToThreshold)
+          | "calendar" => Some(CalendarDates)
+          | _ => None,
+      );
+    let threshold =
+      UseQueryParam.hook(
+        () => Some(17),
+        ~queryFragment="threshold",
+        ~coder={
+          encode: x => {
+            Belt.Option.getWithDefault(x, 1) |> SerializeQueryParam.int.encode;
+          },
+          decode: x =>
+            SerializeQueryParam.int.decode(x)
+            |> Js.Option.map((. x) => Some(x)),
+        },
+      );
     let thresholdOr1 = Belt.Option.getWithDefault(threshold |> fst, 1);
     <div className="flex bg-white flex-col-reverse md:flex-row">
       <Filters

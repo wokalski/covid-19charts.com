@@ -1,12 +1,16 @@
 'use strict';
 
+var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
+var Js_option = require("bs-platform/lib/js/js_option.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var ReactDOMRe = require("reason-react/src/ReactDOMRe.js");
 var Belt_Option = require("bs-platform/lib/js/belt_Option.js");
+var SerializeQueryParams = require("serialize-query-params");
 var Data$ReasonReactExamples = require("./Data.bs.js");
 var Chart$ReasonReactExamples = require("./Chart.bs.js");
 var Filters$ReasonReactExamples = require("./Filters.bs.js");
+var UseQueryParam$ReasonReactExamples = require("./UseQueryParam.bs.js");
 
 function useLocations($$default) {
   var white = "#fff";
@@ -55,9 +59,9 @@ function useLocations($$default) {
     fallbackColor
   ];
   var colorMaxIndex = colors.length - 1 | 0;
-  var match = React.useState((function () {
+  var match = UseQueryParam$ReasonReactExamples.hook((function (param) {
           return $$default;
-        }));
+        }), "loc", SerializeQueryParams.ArrayParam);
   return /* tuple */[
           Belt_Array.mapWithIndexU(match[0], (function (index, locationId) {
                   var match = colors[Math.min(index, colorMaxIndex)];
@@ -72,6 +76,17 @@ function useLocations($$default) {
         ];
 }
 
+function useStringQueryParamState(initial, queryFragment, encode, decode) {
+  return UseQueryParam$ReasonReactExamples.hook(initial, queryFragment, {
+              encode: (function (x) {
+                  return Curry._1(SerializeQueryParams.StringParam.encode, Curry._1(encode, x));
+                }),
+              decode: (function (x) {
+                  return Js_option.andThen(Curry.__1(decode), Curry._1(SerializeQueryParams.StringParam.decode, x));
+                })
+            });
+}
+
 function Index$App(Props) {
   var match = useLocations([
         "China (Guangdong)",
@@ -82,15 +97,54 @@ function Index$App(Props) {
         "US (All regions)"
       ]);
   var locations = match[0];
-  var scale = React.useState((function () {
+  var scale = useStringQueryParamState((function (param) {
           return /* Logarithmic */0;
+        }), "scale", (function (param) {
+          if (param) {
+            return "linear";
+          } else {
+            return "log";
+          }
+        }), (function (param) {
+          switch (param) {
+            case "linear" :
+                return /* Linear */1;
+            case "log" :
+                return /* Logarithmic */0;
+            default:
+              return ;
+          }
         }));
-  var timeline = React.useState((function () {
+  var timeline = useStringQueryParamState((function (param) {
           return /* RelativeToThreshold */0;
+        }), "timeline", (function (param) {
+          if (param) {
+            return "calendar";
+          } else {
+            return "relative";
+          }
+        }), (function (param) {
+          switch (param) {
+            case "calendar" :
+                return /* CalendarDates */1;
+            case "relative" :
+                return /* RelativeToThreshold */0;
+            default:
+              return ;
+          }
         }));
-  var threshold = React.useState((function () {
+  var threshold = UseQueryParam$ReasonReactExamples.hook((function (param) {
           return 17;
-        }));
+        }), "threshold", {
+        encode: (function (x) {
+            return Curry._1(SerializeQueryParams.NumberParam.encode, Belt_Option.getWithDefault(x, 1));
+          }),
+        decode: (function (x) {
+            return Js_option.map((function (x) {
+                          return x;
+                        }), Curry._1(SerializeQueryParams.NumberParam.decode, x));
+          })
+      });
   var thresholdOr1 = Belt_Option.getWithDefault(threshold[0], 1);
   return React.createElement("div", {
               className: "flex bg-white flex-col-reverse md:flex-row"
@@ -111,6 +165,7 @@ function Index$App(Props) {
 
 var App = {
   useLocations: useLocations,
+  useStringQueryParamState: useStringQueryParamState,
   make: Index$App
 };
 
