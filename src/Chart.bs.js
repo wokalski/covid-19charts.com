@@ -80,6 +80,17 @@ function Chart(Props) {
         }));
   var setLinkCopied = match$1[1];
   var linkCopied = match$1[0];
+  React.useEffect((function (param) {
+          Curry._1(setLinkCopied, (function (param) {
+                  return false;
+                }));
+          return ;
+        }), /* tuple */[
+        timeline,
+        scale,
+        locations,
+        threshold
+      ]);
   var tmp;
   if (timeline) {
     tmp = null;

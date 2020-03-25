@@ -90,6 +90,14 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
 
   let (linkCopied, setLinkCopied) = React.useState(() => false);
 
+  React.useEffect4(
+    () => {
+      setLinkCopied(_ => false);
+      None;
+    },
+    (timeline, scale, locations, threshold),
+  );
+
   <div
     ref={ReactDOMRe.Ref.domRef(divRef)}
     className="max-h-screen flex-1 flex flex-col justify-center flex-basis-100">
@@ -245,7 +253,10 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
             "border border-activeblue text-activeblue text-base px-2 py-1 rounded hover:bg-activeblue hover:text-white "
             ++ (linkCopied ? "text-white bg-activeblue" : "")
           }>
-          {React.string(linkCopied ? "Link copied to clipboard" : "Copy link to current chart")}
+          {React.string(
+             linkCopied
+               ? "Link copied to clipboard" : "Copy link to current chart",
+           )}
         </button>
       </div>
     </div>
