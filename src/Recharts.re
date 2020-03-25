@@ -21,7 +21,6 @@ module Dot = {
 
 module Make = (Config: {
                  type dataItem;
-                 type yValue;
                }) => {
   module ResponsiveContainer = {
     [@bs.module "recharts"] [@react.component]
@@ -47,6 +46,11 @@ module Make = (Config: {
       "LineChart";
   };
   module Line = {
+    type yValue;
+    external int: int => yValue = "%identity";
+    external float: float => yValue = "%identity";
+    external toInt: yValue => int = "%identity";
+    external toFloat: yValue => float = "%identity";
     [@bs.module "recharts"] [@react.component]
     external make:
       (
@@ -65,7 +69,7 @@ module Make = (Config: {
                   | `stepAfter
                 ]
                   =?,
-        ~dataKey: Config.dataItem => Js.null(Config.yValue),
+        ~dataKey: Config.dataItem => Js.null(yValue),
         ~stroke: string=?,
         ~strokeWidth: float=?,
         ~strokeDasharray: string=?,
@@ -118,7 +122,8 @@ module Make = (Config: {
         ~domain: (domain, domain)=?,
         ~axisLine: bool=?,
         ~tickLine: bool=?,
-        ~tick: bool=?
+        ~tick: bool=?,
+        ~tickFormatter: Line.yValue => string=?
       ) =>
       React.element =
       "YAxis";
@@ -127,7 +132,7 @@ module Make = (Config: {
     type payload = {
       stroke: string,
       name: string,
-      value: Config.yValue,
+      value: Line.yValue,
       dataKey: string,
       payload: Config.dataItem
     };

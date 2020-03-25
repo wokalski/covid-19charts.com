@@ -387,7 +387,10 @@ function Filters(Props) {
   var setLocations = Props.setLocations;
   var param = Props.scale;
   var param$1 = Props.timeline;
+  var param$2 = Props.chartType;
   var threshold = Props.threshold;
+  var setChartType = param$2[1];
+  var chartType = param$2[0];
   var setTimeline = param$1[1];
   var timeline = param$1[0];
   var setScale = param[1];
@@ -399,34 +402,43 @@ function Filters(Props) {
                   text: "Most important charts to help you understand the COVID-19 outlook for your location."
                 }), React.createElement(Filters$RadioSection, {
                   text: "Chart type",
-                  values: [/* NumberOfCases */0],
-                  selectedValue: /* NumberOfCases */0,
-                  format: (function (param) {
-                      return "Number of cases";
-                    }),
-                  onChange: (function (prim) {
-                      return /* () */0;
-                    })
-                }), React.createElement(Filters$RadioSection, {
-                  text: "Scale",
                   values: [
-                    /* Logarithmic */0,
-                    /* Linear */1
+                    /* NumberOfCases */0,
+                    /* PercentageGrowthOfCases */1
                   ],
-                  selectedValue: param[0],
+                  selectedValue: chartType,
                   format: (function (param) {
                       if (param) {
-                        return "Linear";
+                        return "% growth of cases";
                       } else {
-                        return "Logarithmic";
+                        return "Number of cases";
                       }
                     }),
-                  onChange: (function (scale) {
-                      return Curry._1(setScale, (function (param) {
-                                    return scale;
+                  onChange: (function (chartType) {
+                      return Curry._1(setChartType, (function (param) {
+                                    return chartType;
                                   }));
                     })
-                }), React.createElement(Filters$Locations, {
+                }), chartType ? null : React.createElement(Filters$RadioSection, {
+                    text: "Scale",
+                    values: [
+                      /* Logarithmic */0,
+                      /* Linear */1
+                    ],
+                    selectedValue: param[0],
+                    format: (function (param) {
+                        if (param) {
+                          return "Linear";
+                        } else {
+                          return "Logarithmic";
+                        }
+                      }),
+                    onChange: (function (scale) {
+                        return Curry._1(setScale, (function (param) {
+                                      return scale;
+                                    }));
+                      })
+                  }), React.createElement(Filters$Locations, {
                   allLocations: allLocations,
                   locations: locations,
                   setLocations: setLocations

@@ -102,6 +102,20 @@ module App = {
           | "calendar" => Some(CalendarDates)
           | _ => None,
       );
+    let chartType =
+      useStringQueryParamState(
+        () => Filters.NumberOfCases,
+        ~queryFragment="chart",
+        ~encode=
+          fun
+          | NumberOfCases => "cases_count"
+          | PercentageGrowthOfCases => "percentage_growth_cases",
+        ~decode=
+          fun
+          | "cases_count" => Some(NumberOfCases)
+          | "percentage_growth_cases" => Some(Filters.PercentageGrowthOfCases)
+          | _ => None,
+      );
     let threshold =
       UseQueryParam.hook(
         () => Some(17),
@@ -124,8 +138,10 @@ module App = {
         scale
         timeline
         threshold
+        chartType
       />
       <Chart
+        chartType={chartType |> fst}
         threshold=thresholdOr1
         timeline={timeline |> fst}
         locations

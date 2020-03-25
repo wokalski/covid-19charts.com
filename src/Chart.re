@@ -46,7 +46,8 @@ let ordinalSuffix = i => {
 };
 
 [@react.component]
-let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
+let make =
+    (~timeline: Filters.timeline, ~locations, ~scale, ~threshold, ~chartType) => {
   let formatLabel =
     switch (timeline) {
     | Filters.RelativeToThreshold => (
@@ -56,24 +57,53 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
       )
     | _ => (x => x)
     };
-  let displayGrowthBaseline =
-    switch (timeline, scale) {
-    | (Filters.RelativeToThreshold, Filters.Logarithmic) => true
-    | _ => false
-    };
   let data =
     switch (timeline) {
     | Filters.RelativeToThreshold => Data.alignToDay0(threshold)
     | CalendarDates => Data.calendar
     };
-  let dailyGrowth = 1.33;
-  let exponent = {
-    let threshold = Js.Int.toFloat(threshold);
-    let maxValue = calculateMaxValue(locations, data);
-    log((maxValue |> Belt.Int.toFloat) /. threshold)
-    /. log(dailyGrowth)
-    |> Js.Math.ceil;
-  };
+  let growthBaseline =
+    switch (chartType, timeline, scale) {
+    | (
+        Filters.NumberOfCases,
+        Filters.RelativeToThreshold,
+        Filters.Logarithmic,
+      ) =>
+      let dailyGrowth = 1.33;
+      let exponent = {
+        let threshold = Js.Int.toFloat(threshold);
+        let maxValue = calculateMaxValue(locations, data);
+        log((maxValue |> Belt.Int.toFloat) /. threshold)
+        /. log(dailyGrowth)
+        |> Js.Math.ceil;
+      };
+      <R.Line
+        dot={Dot.bool(false)}
+        activeDot={Dot.bool(false)}
+        name="daily-growth-indicator"
+        _type=`monotone
+        stroke=Colors.colors##black
+        strokeWidth=2.
+        strokeDasharray="3 3"
+        dataKey={item =>
+          if (item.Data.index <= exponent) {
+            Js.Null.return(
+              Js.Int.toFloat(threshold)
+              *. Js.Math.pow_float(
+                   ~base=dailyGrowth,
+                   ~exp=item.Data.index |> Belt.Int.toFloat,
+                 )
+              |> int_of_float
+              |> R.Line.int,
+            );
+          } else {
+            Js.null;
+          }
+        }
+      />;
+
+    | _ => React.null
+    };
 
   let divRef = React.useRef(Js.Nullable.null);
   let (dot, setDot) = React.useState(() => true);
@@ -108,31 +138,7 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
         <R.LineChart
           margin={"top": 20, "right": 50, "bottom": 20, "left": 0} data>
           <R.CartesianGrid strokeDasharray="3 3" />
-          {displayGrowthBaseline
-             ? <R.Line
-                 dot={Dot.bool(false)}
-                 activeDot={Dot.bool(false)}
-                 name="daily-growth-indicator"
-                 _type=`monotone
-                 stroke=Colors.colors##black
-                 strokeWidth=2.
-                 strokeDasharray="3 3"
-                 dataKey={item =>
-                   if (item.Data.index <= exponent) {
-                     Js.Null.return(
-                       Js.Int.toFloat(threshold)
-                       *. Js.Math.pow_float(
-                            ~base=dailyGrowth,
-                            ~exp=item.Data.index |> Belt.Int.toFloat,
-                          )
-                       |> int_of_float,
-                     );
-                   } else {
-                     Js.null;
-                   }
-                 }
-               />
-             : React.null}
+          growthBaseline
           {Js.Array.map(
              ({Location.id, primaryColor}) => {
                <R.Line
@@ -142,7 +148,12 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
                  dataKey={item => {
                    switch (item.Data.values(id)) {
                    | Some(x) when x.Data.numberOfCases != 0 =>
-                     Js.Null.return(x.numberOfCases)
+                     switch (chartType) {
+                     | Filters.NumberOfCases =>
+                       Js.Null.return(R.Line.int(x.numberOfCases))
+                     | Filters.PercentageGrowthOfCases =>
+                       Js.Null.return(R.Line.float(x.growth))
+                     }
                    | _ => Js.Null.empty
                    }
                  }}
@@ -182,16 +193,6 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
                         payload.R.Tooltip.name !== "daily-growth-indicator"
                       )
                    |> Js.Array.map(payload => {
-                        let growthString =
-                          (payload: R.Tooltip.payload).payload.Data.values(
-                            payload.R.Tooltip.name,
-                          )
-                          |> Js.Option.map((. {Data.growth}) => {
-                               " (+"
-                               ++ (growth *. 100. |> Js.Float.toFixed)
-                               ++ "%)"
-                             })
-                          |> Js.Option.getWithDefault("");
                         <span
                           className="text-base font-bold"
                           key={payload.R.Tooltip.name}>
@@ -202,13 +203,42 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
                             )}>
                             {React.string(payload.name)}
                           </span>
-                          {React.string(
-                             separator ++ Js.Int.toString(payload.value),
-                           )}
-                          <span className="text-base font-normal">
-                            {React.string(growthString)}
-                          </span>
-                        </span>;
+                          {switch (chartType) {
+                           | Filters.NumberOfCases =>
+                             let growthString =
+                               (payload: R.Tooltip.payload).payload.Data.values(
+                                 payload.R.Tooltip.name,
+                               )
+                               |> Js.Option.map((. {Data.growth}) => {
+                                    " (+"
+                                    ++ (growth *. 100. |> Js.Float.toFixed)
+                                    ++ "%)"
+                                  })
+                               |> Js.Option.getWithDefault("");
+                             <>
+                               {React.string(
+                                  separator
+                                  ++ Js.Int.toString(
+                                       R.Line.toInt(payload.value),
+                                     ),
+                                )}
+                               <span className="text-base font-normal">
+                                 {React.string(growthString)}
+                               </span>
+                             </>;
+                           | Filters.PercentageGrowthOfCases =>
+                             React.string(
+                               separator
+                               ++ "+"
+                               ++ (
+                                 R.Line.toFloat(payload.value)
+                                 *. 100.
+                                 |> Js.Float.toFixed
+                               )
+                               ++ "%",
+                             )
+                           }}
+                        </span>
                       })
                    |> React.array}
                 </div>
@@ -249,12 +279,19 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
             tickLine=false
             _type=`number
             scale={
-              switch (scale) {
-              | Filters.Logarithmic => `log
-              | Linear => `linear
+              switch (chartType, scale) {
+              | (Filters.NumberOfCases, Filters.Logarithmic) => `log
+              | _ => `linear
               }
             }
             domain=("dataMin" |> R.YAxis.string, "dataMax" |> R.YAxis.string)
+            tickFormatter={x =>
+              switch (chartType) {
+              | Filters.NumberOfCases => Js.Int.toString(R.Line.toInt(x))
+              | Filters.PercentageGrowthOfCases =>
+                (R.Line.toFloat(x) *. 100. |> Js.Float.toFixed) ++ "%"
+              }
+            }
           />
         </R.LineChart>
       </R.ResponsiveContainer>

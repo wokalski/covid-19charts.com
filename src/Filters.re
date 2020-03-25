@@ -210,7 +210,7 @@ module Locations = {
       <H2 text="Locations" />
       {Belt.Array.mapU(locations, (. location) => {
          <Button
-           key=location.Location.id
+           key={location.Location.id}
            location
            onClick={removedId => {
              setLocations(locations =>
@@ -302,7 +302,8 @@ type timeline =
   | CalendarDates;
 
 type chartType =
-  | NumberOfCases;
+  | NumberOfCases
+  | PercentageGrowthOfCases;
 
 [@react.component]
 let make =
@@ -312,6 +313,7 @@ let make =
       ~setLocations,
       ~scale as (scale, setScale),
       ~timeline as (timeline, setTimeline),
+      ~chartType as (chartType, setChartType),
       ~threshold,
     ) => {
   <div className="w-full md:w-64 p-4">
@@ -321,25 +323,30 @@ let make =
     />
     <RadioSection
       text={js|Chart type|js}
-      values=[|NumberOfCases|]
-      selectedValue=NumberOfCases
+      values=[|NumberOfCases, PercentageGrowthOfCases|]
+      selectedValue=chartType
       format={
         fun
         | NumberOfCases => "Number of cases"
+        | PercentageGrowthOfCases => "% growth of cases"
       }
-      onChange=ignore
+      onChange={chartType => setChartType(_ => chartType)}
     />
-    <RadioSection
-      text={js|Scale|js}
-      values=[|Logarithmic, Linear|]
-      selectedValue=scale
-      format={
-        fun
-        | Logarithmic => "Logarithmic"
-        | Linear => "Linear"
-      }
-      onChange={scale => setScale(_ => scale)}
-    />
+    {switch (chartType) {
+     | NumberOfCases =>
+       <RadioSection
+         text={js|Scale|js}
+         values=[|Logarithmic, Linear|]
+         selectedValue=scale
+         format=(
+           fun
+           | Logarithmic => "Logarithmic"
+           | Linear => "Linear"
+         )
+         onChange={scale => setScale(_ => scale)}
+       />
+     | PercentageGrowthOfCases => React.null
+     }}
     <Locations setLocations allLocations locations />
     <RadioSection
       text={js|Timeline|js}

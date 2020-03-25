@@ -46,6 +46,7 @@ function Chart(Props) {
   var locations = Props.locations;
   var scale = Props.scale;
   var threshold = Props.threshold;
+  var chartType = Props.chartType;
   var formatLabel = timeline ? (function (x) {
         return x;
       }) : (function (str) {
@@ -55,11 +56,31 @@ function Chart(Props) {
           return str + (" days since " + (ordinalSuffix(threshold) + " case"));
         }
       });
-  var displayGrowthBaseline = timeline || scale ? false : true;
   var data = timeline ? Data$ReasonReactExamples.calendar : Data$ReasonReactExamples.alignToDay0(threshold);
-  var threshold$1 = threshold;
-  var maxValue = calculateMaxValue(locations, data);
-  var exponent = Js_math.ceil(Math.log(maxValue / threshold$1) / Math.log(1.33));
+  var growthBaseline;
+  if (chartType || timeline || scale) {
+    growthBaseline = null;
+  } else {
+    var threshold$1 = threshold;
+    var maxValue = calculateMaxValue(locations, data);
+    var exponent = Js_math.ceil(Math.log(maxValue / threshold$1) / Math.log(1.33));
+    growthBaseline = React.createElement(Recharts.Line, {
+          type: "monotone",
+          dataKey: (function (item) {
+              if (item.index <= exponent) {
+                return threshold * Math.pow(1.33, item.index) | 0;
+              } else {
+                return null;
+              }
+            }),
+          stroke: Colors$ReasonReactExamples.colors.black,
+          strokeWidth: 2,
+          strokeDasharray: "3 3",
+          dot: false,
+          activeDot: false,
+          name: "daily-growth-indicator"
+        });
+  }
   var divRef = React.useRef(null);
   var match = React.useState((function () {
           return true;
@@ -126,22 +147,7 @@ function Chart(Props) {
                             children: null
                           }, React.createElement(Recharts.CartesianGrid, {
                                 strokeDasharray: "3 3"
-                              }), displayGrowthBaseline ? React.createElement(Recharts.Line, {
-                                  type: "monotone",
-                                  dataKey: (function (item) {
-                                      if (item.index <= exponent) {
-                                        return threshold * Math.pow(1.33, item.index) | 0;
-                                      } else {
-                                        return null;
-                                      }
-                                    }),
-                                  stroke: Colors$ReasonReactExamples.colors.black,
-                                  strokeWidth: 2,
-                                  strokeDasharray: "3 3",
-                                  dot: false,
-                                  activeDot: false,
-                                  name: "daily-growth-indicator"
-                                }) : null, locations.map((function (param) {
+                              }), growthBaseline, locations.map((function (param) {
                                     var id = param.id;
                                     var primaryColor = param.primaryColor;
                                     return React.createElement(Recharts.Line, {
@@ -151,7 +157,11 @@ function Chart(Props) {
                                                     if (match !== undefined) {
                                                       var x = match;
                                                       if (x.numberOfCases !== 0) {
-                                                        return x.numberOfCases;
+                                                        if (chartType) {
+                                                          return x.growth;
+                                                        } else {
+                                                          return x.numberOfCases;
+                                                        }
                                                       } else {
                                                         return null;
                                                       }
@@ -186,9 +196,17 @@ function Chart(Props) {
                                                     }, Curry._1(formatLabel, param.label)), payload.filter((function (payload) {
                                                           return payload.name !== "daily-growth-indicator";
                                                         })).map((function (payload) {
-                                                        var growthString = Js_option.getWithDefault("", Js_option.map((function (param) {
-                                                                    return " (+" + ((param.growth * 100).toFixed() + "%)");
-                                                                  }), Curry._1(payload.payload.values, payload.name)));
+                                                        var tmp;
+                                                        if (chartType) {
+                                                          tmp = separator + ("+" + ((payload.value * 100).toFixed() + "%"));
+                                                        } else {
+                                                          var growthString = Js_option.getWithDefault("", Js_option.map((function (param) {
+                                                                      return " (+" + ((param.growth * 100).toFixed() + "%)");
+                                                                    }), Curry._1(payload.payload.values, payload.name)));
+                                                          tmp = React.createElement(React.Fragment, undefined, separator + payload.value.toString(), React.createElement("span", {
+                                                                    className: "text-base font-normal"
+                                                                  }, growthString));
+                                                        }
                                                         return React.createElement("span", {
                                                                     key: payload.name,
                                                                     className: "text-base font-bold"
@@ -196,9 +214,7 @@ function Chart(Props) {
                                                                         style: {
                                                                           color: payload.stroke
                                                                         }
-                                                                      }, payload.name), separator + payload.value.toString(), React.createElement("span", {
-                                                                        className: "text-base font-normal"
-                                                                      }, growthString));
+                                                                      }, payload.name), tmp);
                                                       })));
                                     } else {
                                       return null;
@@ -225,7 +241,7 @@ function Chart(Props) {
                               }), React.createElement(Recharts.YAxis, {
                                 type: "number",
                                 scale: (function () {
-                                      switch (scale ? /* linear */-325037595 : /* log */5395588) {
+                                      switch (chartType || scale ? /* linear */-325037595 : /* log */5395588) {
                                         case 5395588 :
                                             return "log";
                                         case -325037595 :
@@ -238,7 +254,14 @@ function Chart(Props) {
                                   "dataMax"
                                 ],
                                 axisLine: false,
-                                tickLine: false
+                                tickLine: false,
+                                tickFormatter: (function (x) {
+                                    if (chartType) {
+                                      return (x * 100).toFixed() + "%";
+                                    } else {
+                                      return x.toString();
+                                    }
+                                  })
                               }))
                     }), React.createElement("div", {
                       className: "pl-4"

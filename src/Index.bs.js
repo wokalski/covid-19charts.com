@@ -133,6 +133,24 @@ function Index$App(Props) {
               return ;
           }
         }));
+  var chartType = useStringQueryParamState((function (param) {
+          return /* NumberOfCases */0;
+        }), "chart", (function (param) {
+          if (param) {
+            return "percentage_growth_cases";
+          } else {
+            return "cases_count";
+          }
+        }), (function (param) {
+          switch (param) {
+            case "cases_count" :
+                return /* NumberOfCases */0;
+            case "percentage_growth_cases" :
+                return /* PercentageGrowthOfCases */1;
+            default:
+              return ;
+          }
+        }));
   var threshold = UseQueryParam$ReasonReactExamples.hook((function (param) {
           return 17;
         }), "threshold", {
@@ -154,12 +172,14 @@ function Index$App(Props) {
                   setLocations: match[1],
                   scale: scale,
                   timeline: timeline,
+                  chartType: chartType,
                   threshold: threshold
                 }), React.createElement(Chart$ReasonReactExamples.make, {
                   timeline: timeline[0],
                   locations: locations,
                   scale: scale[0],
-                  threshold: thresholdOr1
+                  threshold: thresholdOr1,
+                  chartType: chartType[0]
                 }));
 }
 
