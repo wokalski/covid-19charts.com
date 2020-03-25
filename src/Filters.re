@@ -349,7 +349,10 @@ let make =
       }
       onChange={timeline => setTimeline(_ => timeline)}
     />
-    <ThresholdInput threshold />
+    {switch (timeline) {
+     | RelativeToThreshold => <ThresholdInput threshold />
+     | CalendarDates => React.null
+     }}
     <Footer />
   </div>;
 };

@@ -383,6 +383,7 @@ function Filters(Props) {
   var param$1 = Props.timeline;
   var threshold = Props.threshold;
   var setTimeline = param$1[1];
+  var timeline = param$1[0];
   var setScale = param[1];
   return React.createElement("div", {
               className: "w-full md:w-64 p-4"
@@ -429,7 +430,7 @@ function Filters(Props) {
                     /* RelativeToThreshold */0,
                     /* CalendarDates */1
                   ],
-                  selectedValue: param$1[0],
+                  selectedValue: timeline,
                   format: (function (param) {
                       if (param) {
                         return "Calendar dates";
@@ -442,9 +443,9 @@ function Filters(Props) {
                                     return timeline;
                                   }));
                     })
-                }), React.createElement(Filters$ThresholdInput, {
-                  threshold: threshold
-                }), React.createElement(Filters$Footer, { }));
+                }), timeline ? null : React.createElement(Filters$ThresholdInput, {
+                    threshold: threshold
+                  }), React.createElement(Filters$Footer, { }));
 }
 
 var make = Filters;
