@@ -717,8 +717,20 @@ input[type=number]::-webkit-outer-spin-button {
   }
 }
 
+.bg-activeblue {
+  background-color: #0099FF;
+}
+
 .bg-white {
   background-color: #FFFFFF;
+}
+
+.hover\:bg-activeblue:hover {
+  background-color: #0099FF;
+}
+
+.border-activeblue {
+  border-color: #0099FF;
 }
 
 .border-lightgrayblue {
@@ -814,6 +826,11 @@ input[type=number]::-webkit-outer-spin-button {
   padding-bottom: 0.25rem;
 }
 
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
 .py-3 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
@@ -831,6 +848,10 @@ input[type=number]::-webkit-outer-spin-button {
   padding-top: 0.75rem;
 }
 
+.pl-4 {
+  padding-left: 1rem;
+}
+
 .relative {
   position: relative;
 }
@@ -839,8 +860,20 @@ input[type=number]::-webkit-outer-spin-button {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+.text-activeblue {
+  color: #0099FF;
+}
+
+.text-white {
+  color: #FFFFFF;
+}
+
 .text-black {
   color: #000000;
+}
+
+.hover\:text-white:hover {
+  color: #FFFFFF;
 }
 
 .text-base {
