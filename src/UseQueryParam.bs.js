@@ -27,9 +27,7 @@ function hook(makeInitial, queryFragment, coder) {
             var obj = { };
             obj[queryFragment] = Curry._1(coder.encode, value);
             var match = SerializeQueryParams.updateInLocation(obj, window.location);
-            var state = match.state;
-            console.log(state);
-            window.history.replaceState(state, "", "" + (String(match.protocol) + ("//" + (String(match.host) + ("" + (String(match.pathname) + ("" + (String(match.search) + ""))))))));
+            window.history.replaceState(match.state, "", "" + (String(match.protocol) + ("//" + (String(match.host) + ("" + (String(match.pathname) + ("" + (String(match.search) + ""))))))));
             return ;
           }
         }), [value]);

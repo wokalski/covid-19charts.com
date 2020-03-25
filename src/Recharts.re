@@ -129,6 +129,7 @@ module Make = (Config: {
       name: string,
       value: Config.yValue,
       dataKey: string,
+      payload: Config.dataItem
     };
 
     type data = {

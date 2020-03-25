@@ -4,8 +4,8 @@ var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
 var Js_math = require("bs-platform/lib/js/js_math.js");
 var Recharts = require("recharts");
+var Js_option = require("bs-platform/lib/js/js_option.js");
 var CopyToClipboard = require("copy-to-clipboard");
-var Belt_HashMapString = require("bs-platform/lib/js/belt_HashMapString.js");
 var Data$ReasonReactExamples = require("./Data.bs.js");
 var Colors$ReasonReactExamples = require("./Colors.bs.js");
 var Recharts$ReasonReactExamples = require("./Recharts.bs.js");
@@ -14,11 +14,11 @@ var R = Recharts$ReasonReactExamples.Make({ });
 
 function calculateMaxValue(locations, data) {
   return data.reduce((function (maxValue, param) {
-                var row = param.values;
+                var values = param.values;
                 return locations.reduce((function (maxValue, $$location) {
-                              var match = Belt_HashMapString.get(row, $$location.id);
+                              var match = Curry._1(values, $$location.id);
                               if (match !== undefined) {
-                                return Math.max(maxValue, match);
+                                return Math.max(maxValue, match.numberOfCases);
                               } else {
                                 return maxValue;
                               }
@@ -147,11 +147,11 @@ function Chart(Props) {
                                     return React.createElement(Recharts.Line, {
                                                 type: "monotone",
                                                 dataKey: (function (item) {
-                                                    var match = Belt_HashMapString.get(item.values, id);
+                                                    var match = Curry._1(item.values, id);
                                                     if (match !== undefined) {
                                                       var x = match;
-                                                      if (x !== 0) {
-                                                        return x;
+                                                      if (x.numberOfCases !== 0) {
+                                                        return x.numberOfCases;
                                                       } else {
                                                         return null;
                                                       }
@@ -186,6 +186,9 @@ function Chart(Props) {
                                                     }, Curry._1(formatLabel, param.label)), payload.filter((function (payload) {
                                                           return payload.name !== "daily-growth-indicator";
                                                         })).map((function (payload) {
+                                                        var growthString = Js_option.getWithDefault("", Js_option.map((function (param) {
+                                                                    return " (+" + ((param.growth * 100).toFixed() + "%)");
+                                                                  }), Curry._1(payload.payload.values, payload.name)));
                                                         return React.createElement("span", {
                                                                     key: payload.name,
                                                                     className: "text-base font-bold"
@@ -193,7 +196,9 @@ function Chart(Props) {
                                                                         style: {
                                                                           color: payload.stroke
                                                                         }
-                                                                      }, payload.name), separator + payload.value.toString());
+                                                                      }, payload.name), separator + payload.value.toString(), React.createElement("span", {
+                                                                        className: "text-base font-normal"
+                                                                      }, growthString));
                                                       })));
                                     } else {
                                       return null;

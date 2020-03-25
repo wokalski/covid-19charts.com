@@ -45,10 +45,48 @@ type xValue =
   | Date(Js.Date.t)
   | Day(int);
 
+type value = {
+  numberOfCases: int,
+  growth: float,
+};
+
+let dataWithGrowth =
+  Map.entries(data)
+  |> Js.Array.map(((countryId, dataPoints)) => {
+       let data =
+         lazy({
+           let countryDataWithGrowth = Map.empty();
+           let _ =
+             Js.Array.reduce(
+               (prevNumberOfCases, day) => {
+                 let numberOfCases = Map.get(dataPoints, day);
+                 let numberOfCasesF = Js.Int.toFloat(numberOfCases);
+                 let prevNumberOfCasesF = Js.Int.toFloat(prevNumberOfCases);
+                 let growth =
+                   prevNumberOfCases == 0
+                     ? 0.
+                     : (numberOfCasesF -. prevNumberOfCasesF)
+                       /. prevNumberOfCasesF;
+                 Map.set(
+                   countryDataWithGrowth,
+                   day,
+                   {numberOfCases, growth},
+                 );
+                 numberOfCases;
+               },
+               0,
+               days,
+             );
+           countryDataWithGrowth;
+         });
+       (countryId, data);
+     })
+  |> Belt.Map.String.fromArray;
+
 type item = {
   x: xValue,
   index: int,
-  values: Belt.HashMap.String.t(int),
+  values: countryId => option(value),
 };
 
 type t = array(item);
@@ -63,12 +101,24 @@ let calendar: t = {
           Belt.HashMap.String.set(
             values,
             Map.get(locations, countryId).name,
-            Map.get(Map.get(data, countryId), day),
+            lazy(
+              Map.get(
+                Belt.Map.String.getExn(dataWithGrowth, countryId)
+                |> Lazy.force,
+                day,
+              )
+            ),
           )
         },
         countryIds,
       );
-      {x: Date(Js.Date.fromString(day)), index, values};
+      {
+        x: Date(Js.Date.fromString(day)),
+        index,
+        values: countryId =>
+          Belt.HashMap.String.get(values, countryId)
+          |> Js.Option.map((. x) => Lazy.force(x)),
+      };
     },
     days,
   );
@@ -76,43 +126,33 @@ let calendar: t = {
 
 let alignToDay0 = threshold => {
   let data =
-    Map.map(
-      (. dataPoints) => {
+    Belt.Map.String.mapU(dataWithGrowth, (. dataPoints) => {
+      lazy({
+        let dataPoints = Lazy.force(dataPoints);
         Map.entries(dataPoints)
         |> Js.Array.map(((date, value)) =>
              (Map.get(dayToIndex, date), value)
            )
         |> Js.Array.sortInPlaceWith((a, b) => {compare(a |> fst, b |> fst)})
         |> Js.Array.map(((_, value)) => value)
-        |> Js.Array.filter(value => value >= threshold)
+        |> Js.Array.filter(value => value.numberOfCases >= threshold)
         |> Js.Array.mapi((value, index) => {(index, value)})
-        |> Belt.Map.Int.fromArray
-      },
-      data,
-    );
+        |> Belt.Map.Int.fromArray;
+      })
+    });
 
-  Array.init(
-    Js.Array.length(days),
-    day => {
-      let values =
-        Belt.HashMap.String.make(~hintSize=Js.Array.length(countryIds));
-      Js.Array.forEach(
-        countryId => {
-          switch (Belt.Map.Int.get(Map.get(data, countryId), day)) {
-          | Some(number) =>
-            Belt.HashMap.String.set(
-              values,
-              Map.get(locations, countryId).name,
-              number,
-            )
-          | None => ()
-          }
-        },
-        countryIds,
-      );
-      {x: Day(day), index: day, values};
-    },
-  );
+  Array.init(Js.Array.length(days), day => {
+    {
+      x: Day(day),
+      index: day,
+      values: countryId => {
+        Belt.Map.String.get(data, countryId)
+        |> Js.Option.andThen((. countryData) => {
+             Belt.Map.Int.get(Lazy.force(countryData), day)
+           });
+      },
+    }
+  });
 };
 
 let allLocations =

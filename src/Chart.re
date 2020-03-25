@@ -12,11 +12,12 @@ external string_to_domain: string => domain = "%identity";
 
 let calculateMaxValue = (locations, data) => {
   Js.Array.reduce(
-    (maxValue, {Data.values: row}) => {
+    (maxValue, {Data.values}) => {
       Js.Array.reduce(
         (maxValue, location) => {
-          switch (Belt.HashMap.String.get(row, location.Location.id)) {
-          | Some(x) => Js.Math.max_int(maxValue, x)
+          switch (values(location.Location.id)) {
+          | Some({Data.numberOfCases}) =>
+            Js.Math.max_int(maxValue, numberOfCases)
           | None => maxValue
           }
         },
@@ -138,12 +139,13 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
                  key=id
                  name=id
                  _type=`monotone
-                 dataKey={item =>
-                   switch (Belt.HashMap.String.get(item.Data.values, id)) {
-                   | Some(x) when x != 0 => Js.Null.return(x)
+                 dataKey={item => {
+                   switch (item.Data.values(id)) {
+                   | Some(x) when x.Data.numberOfCases != 0 =>
+                     Js.Null.return(x.numberOfCases)
                    | _ => Js.Null.empty
                    }
-                 }
+                 }}
                  stroke=primaryColor
                  strokeWidth=2.
                  dot={
@@ -180,6 +182,16 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
                         payload.R.Tooltip.name !== "daily-growth-indicator"
                       )
                    |> Js.Array.map(payload => {
+                        let growthString =
+                          (payload: R.Tooltip.payload).payload.Data.values(
+                            payload.R.Tooltip.name,
+                          )
+                          |> Js.Option.map((. {Data.growth}) => {
+                               " (+"
+                               ++ (growth *. 100. |> Js.Float.toFixed)
+                               ++ "%)"
+                             })
+                          |> Js.Option.getWithDefault("");
                         <span
                           className="text-base font-bold"
                           key={payload.R.Tooltip.name}>
@@ -193,7 +205,10 @@ let make = (~timeline: Filters.timeline, ~locations, ~scale, ~threshold) => {
                           {React.string(
                              separator ++ Js.Int.toString(payload.value),
                            )}
-                        </span>
+                          <span className="text-base font-normal">
+                            {React.string(growthString)}
+                          </span>
+                        </span>;
                       })
                    |> React.array}
                 </div>

@@ -23,7 +23,6 @@ let hook = (makeInitial, ~queryFragment, ~coder) => {
         Js.Dict.set(obj, queryFragment, coder.encode(value));
         let {SerializeQueryParam.protocol, host, pathname, search, state} =
           SerializeQueryParam.updateInLocation(obj, Window.window.location);
-        Js.log(state);
         Window.(
           window.history.replaceState(.
             state,
