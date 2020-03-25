@@ -781,6 +781,10 @@ input[type=number]::-webkit-outer-spin-button {
           flex: 1 1 0%;
 }
 
+.font-normal {
+  font-weight: 400;
+}
+
 .font-bold {
   font-weight: 700;
 }
