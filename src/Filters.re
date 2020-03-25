@@ -115,7 +115,8 @@ module Radio = {
     };
   };
   [@react.component]
-  let make = (~values, ~selectedValue, ~format, ~onChange) => {
+  let make =
+      (~values, ~selectedValue, ~format, ~getKey=Js.String.make, ~onChange) => {
     <div className="flex flex-col">
       {Belt.Array.mapU(
          values,
@@ -124,6 +125,7 @@ module Radio = {
            let selected = value == selectedValue;
            let fontWeight = selected ? "font-bold" : "font-regular";
            <button
+             key={getKey(value)}
              className="flex items-center py-1"
              onClick={_ => onChange(value)}>
              <Circle selected={value == selectedValue} />
@@ -208,6 +210,7 @@ module Locations = {
       <H2 text="Locations" />
       {Belt.Array.mapU(locations, (. location) => {
          <Button
+           key=location.Location.id
            location
            onClick={removedId => {
              setLocations(locations =>

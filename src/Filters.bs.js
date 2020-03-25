@@ -156,7 +156,11 @@ function Filters$Radio(Props) {
   var values = Props.values;
   var selectedValue = Props.selectedValue;
   var format = Props.format;
+  var getKeyOpt = Props.getKey;
   var onChange = Props.onChange;
+  var getKey = getKeyOpt !== undefined ? getKeyOpt : (function (prim) {
+        return String(prim);
+      });
   return React.createElement("div", {
               className: "flex flex-col"
             }, Belt_Array.mapU(values, (function (value) {
@@ -164,6 +168,7 @@ function Filters$Radio(Props) {
                     var selected = Caml_obj.caml_equal(value, selectedValue);
                     var fontWeight = selected ? "font-bold" : "font-regular";
                     return React.createElement("button", {
+                                key: Curry._1(getKey, value),
                                 className: "flex items-center py-1",
                                 onClick: (function (param) {
                                     return Curry._1(onChange, value);
@@ -277,7 +282,8 @@ function Filters$Locations(Props) {
                                                                 return id !== removedId;
                                                               }));
                                                 }));
-                                  })
+                                  }),
+                                key: $$location.id
                               });
                   })), React.createElement("div", {
                   className: "pt-1"
