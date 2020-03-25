@@ -19,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "bs-platform": "^7.2.1",
+    "copy-to-clipboard": "^3.3.1",
     "file-saver": "^2.0.2",
     "postcss-loader": "^3.0.0",
     "react": "^16.8.1",

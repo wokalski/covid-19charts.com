@@ -1,4 +1,7 @@
-type location = {search: string};
+type location = {
+  search: string,
+  href: string,
+};
 type locationState;
 
 type history = {replaceState: (. locationState, string, string) => unit};

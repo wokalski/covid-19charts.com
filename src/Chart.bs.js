@@ -4,6 +4,7 @@ var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
 var Js_math = require("bs-platform/lib/js/js_math.js");
 var Recharts = require("recharts");
+var CopyToClipboard = require("copy-to-clipboard");
 var Belt_HashMapString = require("bs-platform/lib/js/belt_HashMapString.js");
 var Data$ReasonReactExamples = require("./Data.bs.js");
 var Colors$ReasonReactExamples = require("./Colors.bs.js");
@@ -74,6 +75,11 @@ function Chart(Props) {
           }
           return ;
         }), []);
+  var match$1 = React.useState((function () {
+          return false;
+        }));
+  var setLinkCopied = match$1[1];
+  var linkCopied = match$1[0];
   var tmp;
   if (timeline) {
     tmp = null;
@@ -218,7 +224,20 @@ function Chart(Props) {
                                 axisLine: false,
                                 tickLine: false
                               }))
-                    })));
+                    }), React.createElement("div", {
+                      className: "pl-4"
+                    }, React.createElement("button", {
+                          className: "border border-activeblue text-activeblue text-base px-2 py-1 rounded hover:bg-activeblue hover:text-white " + (
+                            linkCopied ? "text-white bg-activeblue" : ""
+                          ),
+                          onClick: (function (param) {
+                              Curry._1(setLinkCopied, (function (param) {
+                                      return true;
+                                    }));
+                              CopyToClipboard(window.location.href);
+                              return /* () */0;
+                            })
+                        }, linkCopied ? "Link copied to clipboard" : "Copy link to current chart"))));
 }
 
 var make = Chart;
