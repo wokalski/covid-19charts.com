@@ -94,7 +94,7 @@ function Index$App(Props) {
         "Italy",
         "Japan",
         "Spain",
-        "US (All regions)"
+        "US"
       ]);
   var locations = match[0];
   var scale = useStringQueryParamState((function (param) {

@@ -70,7 +70,7 @@ module App = {
           "Italy",
           "Japan",
           "Spain",
-          "US (All regions)",
+          "US",
         |],
       );
     let scale =
