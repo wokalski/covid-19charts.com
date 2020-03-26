@@ -47,7 +47,15 @@ let ordinalSuffix = i => {
 
 [@react.component]
 let make =
-    (~timeline: Filters.timeline, ~locations, ~scale, ~threshold, ~chartType) => {
+    (
+      ~timeline: Filters.timeline,
+      ~locations,
+      ~scale,
+      ~threshold,
+      ~chartType,
+      ~startDate,
+      ~endDate,
+    ) => {
   let formatLabel =
     switch (timeline) {
     | Filters.RelativeToThreshold => (
@@ -60,7 +68,7 @@ let make =
   let data =
     switch (timeline) {
     | Filters.RelativeToThreshold => Data.alignToDay0(threshold)
-    | CalendarDates => Data.calendar
+    | CalendarDates => Data.calendar(startDate, endDate)
     };
   let growthBaseline =
     switch (chartType, timeline, scale) {

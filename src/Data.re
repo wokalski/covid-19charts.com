@@ -38,6 +38,9 @@ let days: array(day) = require("../data/days.json");
 let data: Map.t(countryId, dataPoints) = require("../data/data.json");
 let countryIds = Map.keys(locations);
 
+let startDate = Js.Date.fromString(days[0]);
+let endDate = Js.Date.fromString(days[Js.Array.length(days) - 1]);
+
 let dayToIndex =
   Js.Array.mapi((day, index) => {(day, index)}, days) |> Map.fromArray;
 
@@ -124,6 +127,26 @@ let calendar: t = {
   );
 };
 
+let isInitialRange = (selectedStartDate, selectedEndDate) => {
+  Js.Date.getTime(selectedEndDate) == Js.Date.getTime(endDate)
+  && Js.Date.getDate(selectedStartDate) == Js.Date.getTime(startDate);
+};
+
+let calendar = (selectedStartDate, selectedEndDate) =>
+  if (isInitialRange(selectedStartDate, selectedEndDate)) {
+    calendar;
+  } else {
+    Js.Array.filter(
+      ({x}) => {
+        switch (x) {
+        | Date(date) => date >= selectedStartDate && date <= selectedEndDate
+        | _ => false
+        }
+      },
+      calendar,
+    );
+  };
+
 let alignToDay0 = threshold => {
   let data =
     Belt.Map.String.mapU(dataWithGrowth, (. dataPoints) => {
@@ -160,3 +183,9 @@ let allLocations =
   |> Js.Array.map(((locationId, value)) =>
        {ReactSelect.label: value.name, value: locationId}
      );
+
+/* Workaround Datepicker bug/feature.
+   This file is loaded before filters :/.
+   https://github.com/inspect-js/has-symbols/issues/6
+   */
+Window.window.global = Window.window;

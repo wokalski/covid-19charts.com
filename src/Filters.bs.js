@@ -7,7 +7,10 @@ var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Js_option = require("bs-platform/lib/js/js_option.js");
 var Belt_Array = require("bs-platform/lib/js/belt_Array.js");
 var Pervasives = require("bs-platform/lib/js/pervasives.js");
+var Belt_Option = require("bs-platform/lib/js/belt_Option.js");
+var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var ReactSelect = require("react-select");
+var ReactDatepicker = require("react-datepicker");
 var Colors$ReasonReactExamples = require("./Colors.bs.js");
 
 function Filters$Input(Props) {
@@ -381,6 +384,90 @@ var ThresholdInput = {
   make: Filters$ThresholdInput
 };
 
+var make = React.forwardRef((function (Props, forwardedRef) {
+        var valueOpt = Props.value;
+        var onClickOpt = Props.onClick;
+        var forwardedRef$1 = forwardedRef;
+        var value = valueOpt !== undefined ? valueOpt : "";
+        var onClick = onClickOpt !== undefined ? onClickOpt : (function (prim) {
+              return /* () */0;
+            });
+        var tmp = {
+          className: "bg-bggray text-base border-bggray border date-range-button",
+          onClick: onClick
+        };
+        var tmp$1 = Belt_Option.map((forwardedRef$1 == null) ? undefined : Caml_option.some(forwardedRef$1), (function (prim) {
+                return prim;
+              }));
+        if (tmp$1 !== undefined) {
+          tmp.ref = Caml_option.valFromOption(tmp$1);
+        }
+        return React.createElement("div", {
+                    className: "p-1"
+                  }, React.createElement("button", tmp, new Date(value).toLocaleDateString()));
+      }));
+
+var Button$1 = {
+  make: make
+};
+
+function Filters$CalendarInput(Props) {
+  var param = Props.startDate;
+  var param$1 = Props.endDate;
+  var reset = Props.reset;
+  var setEndDate = param$1[1];
+  var endDate = param$1[0];
+  var setStartDate = param[1];
+  var startDate = param[0];
+  var tmp;
+  if (reset !== undefined) {
+    var reset$1 = reset;
+    tmp = React.createElement("button", {
+          className: "pt-3 hover:opacity-50 text-activeblue text-base pl-2",
+          onClick: (function (param) {
+              return Curry._1(reset$1, /* () */0);
+            })
+        }, "Reset");
+  } else {
+    tmp = null;
+  }
+  return React.createElement("div", undefined, React.createElement("div", {
+                  className: "flex items-center"
+                }, React.createElement(Filters$H2, {
+                      text: "Date range"
+                    }), tmp), React.createElement("div", {
+                  className: "pt-1"
+                }, React.createElement(ReactDatepicker.default, {
+                      selected: startDate,
+                      onChange: (function (newDate) {
+                          return Curry._1(setStartDate, (function (param) {
+                                        return newDate;
+                                      }));
+                        }),
+                      customInput: React.createElement(make, { }),
+                      selectsStart: true,
+                      startDate: startDate,
+                      endDate: endDate
+                    }), React.createElement(ReactDatepicker.default, {
+                      selected: endDate,
+                      onChange: (function (newDate) {
+                          return Curry._1(setEndDate, (function (param) {
+                                        return newDate;
+                                      }));
+                        }),
+                      customInput: React.createElement(make, { }),
+                      selectsEnd: true,
+                      startDate: startDate,
+                      endDate: endDate,
+                      minDate: startDate
+                    })));
+}
+
+var CalendarInput = {
+  Button: Button$1,
+  make: Filters$CalendarInput
+};
+
 function Filters(Props) {
   var locations = Props.locations;
   var allLocations = Props.allLocations;
@@ -389,6 +476,9 @@ function Filters(Props) {
   var param$1 = Props.timeline;
   var param$2 = Props.chartType;
   var threshold = Props.threshold;
+  var startDate = Props.startDate;
+  var endDate = Props.endDate;
+  var resetDates = Props.resetDates;
   var setChartType = param$2[1];
   var chartType = param$2[0];
   var setTimeline = param$1[1];
@@ -461,12 +551,16 @@ function Filters(Props) {
                                     return timeline;
                                   }));
                     })
-                }), timeline ? null : React.createElement(Filters$ThresholdInput, {
+                }), timeline ? React.createElement(Filters$CalendarInput, {
+                    startDate: startDate,
+                    endDate: endDate,
+                    reset: resetDates
+                  }) : React.createElement(Filters$ThresholdInput, {
                     threshold: threshold
                   }), React.createElement(Filters$Footer, { }));
 }
 
-var make = Filters;
+var make$1 = Filters;
 
 exports.Input = Input;
 exports.H1 = H1;
@@ -478,5 +572,6 @@ exports.Radio = Radio;
 exports.RadioSection = RadioSection;
 exports.Locations = Locations;
 exports.ThresholdInput = ThresholdInput;
-exports.make = make;
-/* react Not a pure module */
+exports.CalendarInput = CalendarInput;
+exports.make = make$1;
+/* make Not a pure module */

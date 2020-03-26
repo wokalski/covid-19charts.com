@@ -48,7 +48,7 @@ a {
 }
 
 .threshold-input {
-  @apply appearance-none leading-tight bg-bggray text-black overflow-hidden text-base border-bggray border outline-none;
+  @apply appearance-none leading-tight bg-bggray overflow-hidden text-base border-bggray border outline-none;
   height: 29px;
   padding: 2px 8px;
   max-width: 60px;
@@ -65,6 +65,12 @@ a {
 
 .flex-basis-100 {
   flex-basis: 100%;
+}
+
+.date-range-button {
+  height: 29px;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 input[type=number]::-webkit-inner-spin-button, 

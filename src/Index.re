@@ -129,9 +129,36 @@ module App = {
             |> Js.Option.map((. x) => Some(x)),
         },
       );
+    let startDate =
+      UseQueryParam.hook(
+        () => Data.startDate,
+        ~queryFragment="since",
+        ~coder=SerializeQueryParam.date,
+      );
+    let endDate =
+      UseQueryParam.hook(
+        () => Data.endDate,
+        ~queryFragment="until",
+        ~coder=SerializeQueryParam.date,
+      );
+    let resetDates =
+      if (Data.isInitialRange(startDate |> fst, endDate |> fst)) {
+        None;
+      } else {
+        Some(
+          () => {
+            let setStart = startDate |> snd;
+            let setEnd = endDate |> snd;
+            setStart(_ => Data.startDate);
+            setEnd(_ => Data.endDate);
+          },
+        );
+      };
     let thresholdOr1 = Belt.Option.getWithDefault(threshold |> fst, 1);
     <div className="flex bg-white flex-col-reverse md:flex-row">
       <Filters
+        startDate
+        endDate
         locations
         setLocations
         allLocations=Data.allLocations
@@ -139,6 +166,7 @@ module App = {
         timeline
         threshold
         chartType
+        resetDates
       />
       <Chart
         chartType={chartType |> fst}
@@ -146,6 +174,8 @@ module App = {
         timeline={timeline |> fst}
         locations
         scale={scale |> fst}
+        startDate={startDate |> fst}
+        endDate={endDate |> fst}
       />
     </div>;
   };

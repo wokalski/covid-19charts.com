@@ -293,6 +293,76 @@ module ThresholdInput = {
   };
 };
 
+module CalendarInput = {
+  module Button = {
+    [@react.component]
+    let make =
+      React.forwardRef(
+        (
+          ~value: string="",
+          ~onClick: ReactEvent.Mouse.t => unit=ignore,
+          forwardedRef,
+        ) => {
+        <div className="p-1">
+          <button
+            ref=?{
+              Belt.Option.map(
+                Js.Nullable.toOption(forwardedRef),
+                ReactDOMRe.Ref.domRef,
+              )
+            }
+            className="bg-bggray text-base border-bggray border date-range-button"
+            onClick>
+            {React.string(
+               Js.Date.fromString(value) |> Js.Date.toLocaleDateString,
+             )}
+          </button>
+        </div>
+      });
+  };
+  [@react.component]
+  let make =
+      (
+        ~startDate as (startDate, setStartDate),
+        ~endDate as (endDate, setEndDate),
+        ~reset
+      ) => {
+    <div>
+      <div className="flex items-center">
+        <H2 text="Date range" />
+        {switch (reset) {
+         | Some(reset) =>
+           <button
+             onClick={_ => reset()}
+             className="pt-3 hover:opacity-50 text-activeblue text-base pl-2">
+             {React.string("Reset")}
+           </button>
+         | None => React.null
+         }}
+      </div>
+      <div className="pt-1">
+        <DatePicker
+          selected=startDate
+          onChange={newDate => setStartDate(_ => newDate)}
+          customInput={<Button />}
+          selectsStart=true
+          startDate
+          endDate
+        />
+        <DatePicker
+          selected=endDate
+          onChange={newDate => setEndDate(_ => newDate)}
+          customInput={<Button />}
+          selectsEnd=true
+          startDate
+          endDate
+          minDate=startDate
+        />
+      </div>
+    </div>;
+  };
+};
+
 type scale =
   | Logarithmic
   | Linear;
@@ -315,6 +385,9 @@ let make =
       ~timeline as (timeline, setTimeline),
       ~chartType as (chartType, setChartType),
       ~threshold,
+      ~startDate,
+      ~endDate,
+      ~resetDates
     ) => {
   <div className="w-full md:w-64 p-4">
     <H1 text={js|Stay at home|js} />
@@ -361,7 +434,7 @@ let make =
     />
     {switch (timeline) {
      | RelativeToThreshold => <ThresholdInput threshold />
-     | CalendarDates => React.null
+     | CalendarDates => <CalendarInput reset=resetDates startDate endDate />
      }}
     <Footer />
   </div>;

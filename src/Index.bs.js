@@ -163,6 +163,22 @@ function Index$App(Props) {
                         }), Curry._1(SerializeQueryParams.NumberParam.decode, x));
           })
       });
+  var startDate = UseQueryParam$ReasonReactExamples.hook((function (param) {
+          return Data$ReasonReactExamples.startDate;
+        }), "since", SerializeQueryParams.DateParam);
+  var endDate = UseQueryParam$ReasonReactExamples.hook((function (param) {
+          return Data$ReasonReactExamples.endDate;
+        }), "until", SerializeQueryParams.DateParam);
+  var resetDates = Data$ReasonReactExamples.isInitialRange(startDate[0], endDate[0]) ? undefined : (function (param) {
+        var setStart = startDate[1];
+        var setEnd = endDate[1];
+        Curry._1(setStart, (function (param) {
+                return Data$ReasonReactExamples.startDate;
+              }));
+        return Curry._1(setEnd, (function (param) {
+                      return Data$ReasonReactExamples.endDate;
+                    }));
+      });
   var thresholdOr1 = Belt_Option.getWithDefault(threshold[0], 1);
   return React.createElement("div", {
               className: "flex bg-white flex-col-reverse md:flex-row"
@@ -173,13 +189,18 @@ function Index$App(Props) {
                   scale: scale,
                   timeline: timeline,
                   chartType: chartType,
-                  threshold: threshold
+                  threshold: threshold,
+                  startDate: startDate,
+                  endDate: endDate,
+                  resetDates: resetDates
                 }), React.createElement(Chart$ReasonReactExamples.make, {
                   timeline: timeline[0],
                   locations: locations,
                   scale: scale[0],
                   threshold: thresholdOr1,
-                  chartType: chartType[0]
+                  chartType: chartType[0],
+                  startDate: startDate[0],
+                  endDate: endDate[0]
                 }));
 }
 

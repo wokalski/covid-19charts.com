@@ -12,6 +12,8 @@ external int: coder(int) = "NumberParam";
 external string: coder(string) = "StringParam";
 [@bs.module "serialize-query-params"] [@bs.val]
 external stringArray: coder(array(string)) = "ArrayParam";
+[@bs.module "serialize-query-params"] [@bs.val]
+external date: coder(Js.Date.t) = "DateParam";
 
 type locationFragments = {
   protocol: string,

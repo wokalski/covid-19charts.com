@@ -47,6 +47,8 @@ function Chart(Props) {
   var scale = Props.scale;
   var threshold = Props.threshold;
   var chartType = Props.chartType;
+  var startDate = Props.startDate;
+  var endDate = Props.endDate;
   var formatLabel = timeline ? (function (x) {
         return x;
       }) : (function (str) {
@@ -56,7 +58,7 @@ function Chart(Props) {
           return str + (" days since " + (ordinalSuffix(threshold) + " case"));
         }
       });
-  var data = timeline ? Data$ReasonReactExamples.calendar : Data$ReasonReactExamples.alignToDay0(threshold);
+  var data = timeline ? Data$ReasonReactExamples.calendar(startDate, endDate) : Data$ReasonReactExamples.alignToDay0(threshold);
   var growthBaseline;
   if (chartType || timeline || scale) {
     growthBaseline = null;

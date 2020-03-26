@@ -5,6 +5,7 @@ var Block = require("bs-platform/lib/js/block.js");
 var Js_dict = require("bs-platform/lib/js/js_dict.js");
 var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Js_option = require("bs-platform/lib/js/js_option.js");
+var Caml_array = require("bs-platform/lib/js/caml_array.js");
 var Belt_MapInt = require("bs-platform/lib/js/belt_MapInt.js");
 var Belt_MapString = require("bs-platform/lib/js/belt_MapString.js");
 var Caml_primitive = require("bs-platform/lib/js/caml_primitive.js");
@@ -46,6 +47,10 @@ var days = require("../data/days.json");
 var data = require("../data/data.json");
 
 var countryIds = Object.keys(locations);
+
+var startDate = new Date(Caml_array.caml_array_get(days, 0));
+
+var endDate = new Date(Caml_array.caml_array_get(days, days.length - 1 | 0));
 
 var dayToIndex = Js_dict.fromArray(days.map((function (day, index) {
             return /* tuple */[
@@ -93,6 +98,34 @@ var calendar = days.map((function (day, index) {
               };
       }));
 
+function isInitialRange(selectedStartDate, selectedEndDate) {
+  if (selectedEndDate.getTime() === endDate.getTime()) {
+    return selectedStartDate.getDate() === startDate.getTime();
+  } else {
+    return false;
+  }
+}
+
+function calendar$1(selectedStartDate, selectedEndDate) {
+  if (isInitialRange(selectedStartDate, selectedEndDate)) {
+    return calendar;
+  } else {
+    return calendar.filter((function (param) {
+                  var x = param.x;
+                  if (x.tag) {
+                    return false;
+                  } else {
+                    var date = x[0];
+                    if (Caml_obj.caml_greaterequal(date, selectedStartDate)) {
+                      return Caml_obj.caml_lessequal(date, selectedEndDate);
+                    } else {
+                      return false;
+                    }
+                  }
+                }));
+  }
+}
+
 function alignToDay0(threshold) {
   var data = Belt_MapString.mapU(dataWithGrowth, (function (dataPoints) {
           return Caml_obj.caml_lazy_make((function (param) {
@@ -136,14 +169,19 @@ var allLocations = Js_dict.entries(locations).map((function (param) {
               };
       }));
 
+window.global = window;
+
 exports.$$Map = $$Map;
 exports.locations = locations;
 exports.days = days;
 exports.data = data;
 exports.countryIds = countryIds;
+exports.startDate = startDate;
+exports.endDate = endDate;
 exports.dayToIndex = dayToIndex;
 exports.dataWithGrowth = dataWithGrowth;
-exports.calendar = calendar;
+exports.isInitialRange = isInitialRange;
+exports.calendar = calendar$1;
 exports.alignToDay0 = alignToDay0;
 exports.allLocations = allLocations;
 /* locations Not a pure module */
