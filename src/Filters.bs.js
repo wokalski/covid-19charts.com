@@ -493,13 +493,21 @@ function Filters(Props) {
                 }), React.createElement(Filters$RadioSection, {
                   text: "Chart type",
                   values: [
-                    /* NumberOfCases */0,
-                    /* PercentageGrowthOfCases */1
+                    /* Number */[/* Confirmed */0],
+                    /* PercentageGrowthOfCases */0,
+                    /* Number */[/* Deaths */1],
+                    /* TotalMortalityRate */1
                   ],
                   selectedValue: chartType,
                   format: (function (param) {
-                      if (param) {
-                        return "% growth of cases";
+                      if (typeof param === "number") {
+                        if (param !== 0) {
+                          return "Mortality rate";
+                        } else {
+                          return "% growth of cases";
+                        }
+                      } else if (param[0]) {
+                        return "Number of fatalities";
                       } else {
                         return "Number of cases";
                       }
@@ -509,7 +517,7 @@ function Filters(Props) {
                                     return chartType;
                                   }));
                     })
-                }), chartType ? null : React.createElement(Filters$RadioSection, {
+                }), typeof chartType === "number" ? null : React.createElement(Filters$RadioSection, {
                     text: "Scale",
                     values: [
                       /* Logarithmic */0,

@@ -134,19 +134,29 @@ function Index$App(Props) {
           }
         }));
   var chartType = useStringQueryParamState((function (param) {
-          return /* NumberOfCases */0;
+          return /* Number */[/* Confirmed */0];
         }), "chart", (function (param) {
-          if (param) {
-            return "percentage_growth_cases";
+          if (typeof param === "number") {
+            if (param !== 0) {
+              return "total_mortality_rate";
+            } else {
+              return "percentage_growth_cases";
+            }
+          } else if (param[0]) {
+            return "deaths_count";
           } else {
             return "cases_count";
           }
         }), (function (param) {
           switch (param) {
             case "cases_count" :
-                return /* NumberOfCases */0;
+                return /* Number */[/* Confirmed */0];
+            case "deaths_count" :
+                return /* Number */[/* Deaths */1];
             case "percentage_growth_cases" :
-                return /* PercentageGrowthOfCases */1;
+                return /* PercentageGrowthOfCases */0;
+            case "total_mortality_rate" :
+                return /* TotalMortalityRate */1;
             default:
               return ;
           }

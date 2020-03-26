@@ -104,16 +104,20 @@ module App = {
       );
     let chartType =
       useStringQueryParamState(
-        () => Filters.NumberOfCases,
+        () => Filters.Number(Data.Confirmed),
         ~queryFragment="chart",
         ~encode=
           fun
-          | NumberOfCases => "cases_count"
-          | PercentageGrowthOfCases => "percentage_growth_cases",
+          | Number(Data.Confirmed) => "cases_count"
+          | Number(Data.Deaths) => "deaths_count"
+          | PercentageGrowthOfCases => "percentage_growth_cases"
+          | TotalMortalityRate => "total_mortality_rate",
         ~decode=
           fun
-          | "cases_count" => Some(NumberOfCases)
+          | "cases_count" => Some(Number(Data.Confirmed))
+          | "deaths_count" => Some(Number(Data.Deaths))
           | "percentage_growth_cases" => Some(Filters.PercentageGrowthOfCases)
+          | "total_mortality_rate" => Some(Filters.TotalMortalityRate)
           | _ => None,
       );
     let threshold =

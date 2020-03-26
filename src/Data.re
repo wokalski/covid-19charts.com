@@ -30,7 +30,11 @@ type location = {
   name: string,
 };
 type day = string;
-type dataPoints = Map.t(day, int);
+type record = {
+  confirmed: int,
+  deaths: int,
+};
+type dataPoints = Map.t(day, record);
 
 let locations: Map.t(countryId, location) =
   require("../data/locations.json");
@@ -48,10 +52,12 @@ type xValue =
   | Date(Js.Date.t)
   | Day(int);
 
-type value = {
-  numberOfCases: int,
-  growth: float,
-};
+type value =
+  | First(record)
+  | Pair({
+      prevRecord: record,
+      record,
+    });
 
 let dataWithGrowth =
   Map.entries(data)
@@ -61,23 +67,19 @@ let dataWithGrowth =
            let countryDataWithGrowth = Map.empty();
            let _ =
              Js.Array.reduce(
-               (prevNumberOfCases, day) => {
-                 let numberOfCases = Map.get(dataPoints, day);
-                 let numberOfCasesF = Js.Int.toFloat(numberOfCases);
-                 let prevNumberOfCasesF = Js.Int.toFloat(prevNumberOfCases);
-                 let growth =
-                   prevNumberOfCases == 0
-                     ? 0.
-                     : (numberOfCasesF -. prevNumberOfCasesF)
-                       /. prevNumberOfCasesF;
+               (prevRecord, day) => {
+                 let record = Map.get(dataPoints, day);
                  Map.set(
                    countryDataWithGrowth,
                    day,
-                   {numberOfCases, growth},
+                   switch (prevRecord) {
+                   | None => First(record)
+                   | Some(x) => Pair({prevRecord: x, record})
+                   },
                  );
-                 numberOfCases;
+                 Some(record);
                },
-               0,
+               None,
                days,
              );
            countryDataWithGrowth;
@@ -147,7 +149,27 @@ let calendar = (selectedStartDate, selectedEndDate) =>
     );
   };
 
-let alignToDay0 = threshold => {
+type dataType =
+  | Confirmed
+  | Deaths;
+
+let getRecord =
+  fun
+  | First(value) => value
+  | Pair({record}) => record;
+
+let getValueFromRecord = (dataType, record) => {
+  switch (dataType) {
+  | Deaths => record.deaths
+  | Confirmed => record.confirmed
+  };
+};
+
+let getValue = (dataType, dataItem) => {
+  getValueFromRecord(dataType, getRecord(dataItem));
+};
+
+let alignToDay0 = (dataType, threshold) => {
   let data =
     Belt.Map.String.mapU(dataWithGrowth, (. dataPoints) => {
       lazy({
@@ -158,7 +180,7 @@ let alignToDay0 = threshold => {
            )
         |> Js.Array.sortInPlaceWith((a, b) => {compare(a |> fst, b |> fst)})
         |> Js.Array.map(((_, value)) => value)
-        |> Js.Array.filter(value => value.numberOfCases >= threshold)
+        |> Js.Array.filter(value => {getValue(dataType, value) >= threshold})
         |> Js.Array.mapi((value, index) => {(index, value)})
         |> Belt.Map.Int.fromArray;
       })
@@ -176,6 +198,44 @@ let alignToDay0 = threshold => {
       },
     }
   });
+};
+
+let getGrowth = dataType =>
+  fun
+  | First(_) => 0.
+  | Pair({prevRecord, record}) => {
+      let numberOfCasesF =
+        Js.Int.toFloat(getValueFromRecord(dataType, record));
+      let prevNumberOfCases = getValueFromRecord(dataType, prevRecord);
+      let prevNumberOfCasesF = Js.Int.toFloat(prevNumberOfCases);
+      prevNumberOfCases == 0
+        ? 0. : (numberOfCasesF -. prevNumberOfCasesF) /. prevNumberOfCasesF;
+    };
+
+let getTotalMortailityRate =
+  fun
+  | First({confirmed, deaths}) when confirmed > 0 =>
+    Js.Int.toFloat(deaths) /. Js.Int.toFloat(confirmed)
+  | Pair({record: {confirmed, deaths}}) when confirmed > 0 =>
+    Js.Int.toFloat(deaths) /. Js.Int.toFloat(confirmed)
+  | _ => 0.;
+
+let getDailyNewCases =
+  fun
+  | First(ret) => ret
+  | Pair({prevRecord, record}) => {
+      let confirmed = record.confirmed - prevRecord.confirmed;
+      let deaths = record.deaths - prevRecord.deaths;
+      {confirmed, deaths};
+    };
+
+let getDailyMortailityRate = x => {
+  let {confirmed, deaths} = getDailyNewCases(x);
+  if (confirmed > 0) {
+    Js.Int.toFloat(deaths) /. Js.Int.toFloat(confirmed);
+  } else {
+    0.;
+  };
 };
 
 let allLocations =

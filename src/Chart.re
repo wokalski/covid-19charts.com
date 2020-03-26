@@ -10,16 +10,16 @@ external int_to_domain: int => domain = "%identity";
 external string_to_domain: string => domain = "%identity";
 [@bs.get] external clientHeight: Dom.element => float = "clientHeight";
 
-let calculateMaxValue = (locations, data) => {
+let calculateMaxValue = (dataType, locations, data) => {
   Js.Array.reduce(
     (maxValue, {Data.values}) => {
       Js.Array.reduce(
         (maxValue, location) => {
-          switch (values(location.Location.id)) {
-          | Some({Data.numberOfCases}) =>
-            Js.Math.max_int(maxValue, numberOfCases)
-          | None => maxValue
-          }
+          values(location.Location.id)
+          |> Js.Option.map((. value) => {
+               Js.Math.max_int(maxValue, Data.getValue(dataType, value))
+             })
+          |> Js.Option.getWithDefault(maxValue)
         },
         maxValue,
         locations,
@@ -45,6 +45,88 @@ let ordinalSuffix = i => {
   };
 };
 
+let renderTooltipValues = (~chartType, ~payload, ~separator) => {
+  payload
+  |> Js.Array.filter(payload =>
+       payload.R.Tooltip.name !== "daily-growth-indicator"
+     )
+  |> Js.Array.map(payload => {
+       let currentDataItem =
+         (payload: R.Tooltip.payload).payload.Data.values(
+           payload.R.Tooltip.name,
+         );
+       <span className="text-base font-bold" key={payload.R.Tooltip.name}>
+         <span style={ReactDOMRe.Style.make(~color=payload.stroke, ())}>
+           {React.string(payload.name)}
+         </span>
+         {switch (chartType) {
+          | Filters.Number(dataType) =>
+            let growthString =
+              currentDataItem
+              |> Js.Option.map((. dataItem) => {
+                   " (+"
+                   ++ (
+                     Data.getGrowth(dataType, dataItem)
+                     *. 100.
+                     |> Js.Float.toFixed
+                   )
+                   ++ "%)"
+                 })
+              |> Js.Option.getWithDefault("");
+            <>
+              {React.string(
+                 separator ++ Js.Int.toString(R.Line.toInt(payload.value)),
+               )}
+              <span className="text-base font-normal">
+                {React.string(growthString)}
+              </span>
+            </>;
+          | Filters.PercentageGrowthOfCases =>
+            let growthString =
+              currentDataItem
+              |> Js.Option.map((. dataItem) => {
+                   " (+"
+                   ++ (
+                     Data.getDailyNewCases(dataItem).confirmed
+                     |> Js.Int.toString
+                   )
+                   ++ ")"
+                 })
+              |> Js.Option.getWithDefault("");
+            React.string(
+              separator
+              ++ "+"
+              ++ (R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixed)
+              ++ "%"
+              ++ growthString,
+            );
+          | Filters.TotalMortalityRate =>
+            let growthString =
+              currentDataItem
+              |> Js.Option.map((. dataItem) => {
+                   let {Data.confirmed, deaths} =
+                     Data.getRecord(dataItem);
+                   " ("
+                   ++ (
+                     Js.Int.toString(deaths)
+                     ++ "/"
+                     ++ Js.Int.toString(confirmed)
+                   )
+                   ++ ")";
+                 })
+              |> Js.Option.getWithDefault("");
+            React.string(
+              separator
+              ++ (R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixed)
+              ++ "%"
+              ++ growthString,
+            );
+          }}
+       </span>;
+     })
+  |> React.array;
+};
+
 [@react.component]
 let make =
     (
@@ -56,31 +138,44 @@ let make =
       ~startDate,
       ~endDate,
     ) => {
-  let formatLabel =
+  let dataType =
+    switch (chartType) {
+    | Filters.Number(typ) => typ
+    | Filters.PercentageGrowthOfCases => Data.Confirmed
+    | Filters.TotalMortalityRate => Data.Deaths
+    };
+  let dataTypeSuffix =
+    switch (dataType) {
+    | Data.Confirmed => " case"
+    | Data.Deaths => " fatality"
+    };
+  let formatLabel = {
     switch (timeline) {
     | Filters.RelativeToThreshold => (
         fun
-        | "1" => "1 day since " ++ ordinalSuffix(threshold) ++ " case"
-        | str => str ++ " days since " ++ ordinalSuffix(threshold) ++ " case"
+        | "1" => "1 day since " ++ ordinalSuffix(threshold) ++ dataTypeSuffix
+        | str =>
+          str ++ " days since " ++ ordinalSuffix(threshold) ++ dataTypeSuffix
       )
     | _ => (x => x)
     };
+  };
   let data =
     switch (timeline) {
-    | Filters.RelativeToThreshold => Data.alignToDay0(threshold)
+    | Filters.RelativeToThreshold => Data.alignToDay0(dataType, threshold)
     | CalendarDates => Data.calendar(startDate, endDate)
     };
   let growthBaseline =
     switch (chartType, timeline, scale) {
     | (
-        Filters.NumberOfCases,
+        Filters.Number(Data.Confirmed),
         Filters.RelativeToThreshold,
         Filters.Logarithmic,
       ) =>
       let dailyGrowth = 1.33;
       let exponent = {
         let threshold = Js.Int.toFloat(threshold);
-        let maxValue = calculateMaxValue(locations, data);
+        let maxValue = calculateMaxValue(Data.Confirmed, locations, data);
         log((maxValue |> Belt.Int.toFloat) /. threshold)
         /. log(dailyGrowth)
         |> Js.Math.ceil;
@@ -155,12 +250,23 @@ let make =
                  _type=`monotone
                  dataKey={item => {
                    switch (item.Data.values(id)) {
-                   | Some(x) when x.Data.numberOfCases != 0 =>
+                   | Some(x) =>
                      switch (chartType) {
-                     | Filters.NumberOfCases =>
-                       Js.Null.return(R.Line.int(x.numberOfCases))
+                     | Filters.Number(dataType) =>
+                       let value = Data.getValue(dataType, x);
+                       if (value != 0) {
+                         Js.Null.return(R.Line.int(value));
+                       } else {
+                         Js.null;
+                       };
                      | Filters.PercentageGrowthOfCases =>
-                       Js.Null.return(R.Line.float(x.growth))
+                       Js.Null.return(
+                         R.Line.float(Data.getGrowth(Data.Confirmed, x)),
+                       )
+                     | Filters.TotalMortalityRate =>
+                       Js.Null.return(
+                         R.Line.float(Data.getTotalMortailityRate(x)),
+                       )
                      }
                    | _ => Js.Null.empty
                    }
@@ -196,59 +302,7 @@ let make =
                   <span className="text-base font-bold">
                     {React.string(formatLabel(label))}
                   </span>
-                  {payload
-                   |> Js.Array.filter(payload =>
-                        payload.R.Tooltip.name !== "daily-growth-indicator"
-                      )
-                   |> Js.Array.map(payload => {
-                        <span
-                          className="text-base font-bold"
-                          key={payload.R.Tooltip.name}>
-                          <span
-                            style={ReactDOMRe.Style.make(
-                              ~color=payload.stroke,
-                              (),
-                            )}>
-                            {React.string(payload.name)}
-                          </span>
-                          {switch (chartType) {
-                           | Filters.NumberOfCases =>
-                             let growthString =
-                               (payload: R.Tooltip.payload).payload.Data.values(
-                                 payload.R.Tooltip.name,
-                               )
-                               |> Js.Option.map((. {Data.growth}) => {
-                                    " (+"
-                                    ++ (growth *. 100. |> Js.Float.toFixed)
-                                    ++ "%)"
-                                  })
-                               |> Js.Option.getWithDefault("");
-                             <>
-                               {React.string(
-                                  separator
-                                  ++ Js.Int.toString(
-                                       R.Line.toInt(payload.value),
-                                     ),
-                                )}
-                               <span className="text-base font-normal">
-                                 {React.string(growthString)}
-                               </span>
-                             </>;
-                           | Filters.PercentageGrowthOfCases =>
-                             React.string(
-                               separator
-                               ++ "+"
-                               ++ (
-                                 R.Line.toFloat(payload.value)
-                                 *. 100.
-                                 |> Js.Float.toFixed
-                               )
-                               ++ "%",
-                             )
-                           }}
-                        </span>
-                      })
-                   |> React.array}
+                  {renderTooltipValues(~chartType, ~payload, ~separator)}
                 </div>
               | None => React.null
               }
@@ -272,7 +326,7 @@ let make =
                let value =
                  "Number of days since "
                  ++ ordinalSuffix(threshold)
-                 ++ " case";
+                 ++ dataTypeSuffix;
                <R.Label
                  style={"fontWeight": "bold", "fontSize": "14px"}
                  value
@@ -288,14 +342,15 @@ let make =
             _type=`number
             scale={
               switch (chartType, scale) {
-              | (Filters.NumberOfCases, Filters.Logarithmic) => `log
+              | (Filters.Number(_), Filters.Logarithmic) => `log
               | _ => `linear
               }
             }
             domain=("dataMin" |> R.YAxis.string, "dataMax" |> R.YAxis.string)
             tickFormatter={x =>
               switch (chartType) {
-              | Filters.NumberOfCases => Js.Int.toString(R.Line.toInt(x))
+              | Filters.Number(_) => Js.Int.toString(R.Line.toInt(x))
+              | Filters.TotalMortalityRate
               | Filters.PercentageGrowthOfCases =>
                 (R.Line.toFloat(x) *. 100. |> Js.Float.toFixed) ++ "%"
               }

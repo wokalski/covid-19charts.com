@@ -63,17 +63,14 @@ var dataWithGrowth = Belt_MapString.fromArray(Js_dict.entries(data).map((functio
             var dataPoints = param[1];
             var data = Caml_obj.caml_lazy_make((function (param) {
                     var countryDataWithGrowth = { };
-                    days.reduce((function (prevNumberOfCases, day) {
-                            var numberOfCases = dataPoints[day];
-                            var numberOfCasesF = numberOfCases;
-                            var prevNumberOfCasesF = prevNumberOfCases;
-                            var growth = prevNumberOfCases === 0 ? 0 : (numberOfCasesF - prevNumberOfCasesF) / prevNumberOfCasesF;
-                            set(countryDataWithGrowth, day, {
-                                  numberOfCases: numberOfCases,
-                                  growth: growth
-                                });
-                            return numberOfCases;
-                          }), 0);
+                    days.reduce((function (prevRecord, day) {
+                            var record = dataPoints[day];
+                            set(countryDataWithGrowth, day, prevRecord !== undefined ? /* Pair */Block.__(1, [
+                                      /* prevRecord */prevRecord,
+                                      /* record */record
+                                    ]) : /* First */Block.__(0, [record]));
+                            return record;
+                          }), undefined);
                     return countryDataWithGrowth;
                   }));
             return /* tuple */[
@@ -126,7 +123,27 @@ function calendar$1(selectedStartDate, selectedEndDate) {
   }
 }
 
-function alignToDay0(threshold) {
+function getRecord(param) {
+  if (param.tag) {
+    return param[/* record */1];
+  } else {
+    return param[0];
+  }
+}
+
+function getValueFromRecord(dataType, record) {
+  if (dataType) {
+    return record.deaths;
+  } else {
+    return record.confirmed;
+  }
+}
+
+function getValue(dataType, dataItem) {
+  return getValueFromRecord(dataType, getRecord(dataItem));
+}
+
+function alignToDay0(dataType, threshold) {
   var data = Belt_MapString.mapU(dataWithGrowth, (function (dataPoints) {
           return Caml_obj.caml_lazy_make((function (param) {
                         var dataPoints$1 = CamlinternalLazy.force(dataPoints);
@@ -140,7 +157,7 @@ function alignToDay0(threshold) {
                                               })).map((function (param) {
                                               return param[1];
                                             })).filter((function (value) {
-                                            return value.numberOfCases >= threshold;
+                                            return getValueFromRecord(dataType, getRecord(value)) >= threshold;
                                           })).map((function (value, index) {
                                           return /* tuple */[
                                                   index,
@@ -160,6 +177,66 @@ function alignToDay0(threshold) {
                           })
                       };
               }));
+}
+
+function getGrowth(dataType, param) {
+  if (param.tag) {
+    var numberOfCasesF = getValueFromRecord(dataType, param[/* record */1]);
+    var prevNumberOfCases = getValueFromRecord(dataType, param[/* prevRecord */0]);
+    var prevNumberOfCasesF = prevNumberOfCases;
+    if (prevNumberOfCases === 0) {
+      return 0;
+    } else {
+      return (numberOfCasesF - prevNumberOfCasesF) / prevNumberOfCasesF;
+    }
+  } else {
+    return 0;
+  }
+}
+
+function getTotalMortailityRate(param) {
+  if (param.tag) {
+    var match = param[/* record */1];
+    var confirmed = match.confirmed;
+    if (confirmed > 0) {
+      return match.deaths / confirmed;
+    } else {
+      return 0;
+    }
+  } else {
+    var match$1 = param[0];
+    var confirmed$1 = match$1.confirmed;
+    if (confirmed$1 > 0) {
+      return match$1.deaths / confirmed$1;
+    } else {
+      return 0;
+    }
+  }
+}
+
+function getDailyNewCases(param) {
+  if (param.tag) {
+    var record = param[/* record */1];
+    var prevRecord = param[/* prevRecord */0];
+    var confirmed = record.confirmed - prevRecord.confirmed | 0;
+    var deaths = record.deaths - prevRecord.deaths | 0;
+    return {
+            confirmed: confirmed,
+            deaths: deaths
+          };
+  } else {
+    return param[0];
+  }
+}
+
+function getDailyMortailityRate(x) {
+  var match = getDailyNewCases(x);
+  var confirmed = match.confirmed;
+  if (confirmed > 0) {
+    return match.deaths / confirmed;
+  } else {
+    return 0;
+  }
 }
 
 var allLocations = Js_dict.entries(locations).map((function (param) {
@@ -182,6 +259,13 @@ exports.dayToIndex = dayToIndex;
 exports.dataWithGrowth = dataWithGrowth;
 exports.isInitialRange = isInitialRange;
 exports.calendar = calendar$1;
+exports.getRecord = getRecord;
+exports.getValueFromRecord = getValueFromRecord;
+exports.getValue = getValue;
 exports.alignToDay0 = alignToDay0;
+exports.getGrowth = getGrowth;
+exports.getTotalMortailityRate = getTotalMortailityRate;
+exports.getDailyNewCases = getDailyNewCases;
+exports.getDailyMortailityRate = getDailyMortailityRate;
 exports.allLocations = allLocations;
 /* locations Not a pure module */

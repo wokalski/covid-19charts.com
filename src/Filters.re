@@ -325,7 +325,7 @@ module CalendarInput = {
       (
         ~startDate as (startDate, setStartDate),
         ~endDate as (endDate, setEndDate),
-        ~reset
+        ~reset,
       ) => {
     <div>
       <div className="flex items-center">
@@ -372,8 +372,9 @@ type timeline =
   | CalendarDates;
 
 type chartType =
-  | NumberOfCases
-  | PercentageGrowthOfCases;
+  | Number(Data.dataType)
+  | PercentageGrowthOfCases
+  | TotalMortalityRate;
 
 [@react.component]
 let make =
@@ -387,7 +388,7 @@ let make =
       ~threshold,
       ~startDate,
       ~endDate,
-      ~resetDates
+      ~resetDates,
     ) => {
   <div className="w-full md:w-64 p-4">
     <H1 text={js|Stay at home|js} />
@@ -396,17 +397,24 @@ let make =
     />
     <RadioSection
       text={js|Chart type|js}
-      values=[|NumberOfCases, PercentageGrowthOfCases|]
+      values=[|
+        Number(Data.Confirmed),
+        PercentageGrowthOfCases,
+        Number(Data.Deaths),
+        TotalMortalityRate,
+      |]
       selectedValue=chartType
       format={
         fun
-        | NumberOfCases => "Number of cases"
+        | Number(Data.Confirmed) => "Number of cases"
         | PercentageGrowthOfCases => "% growth of cases"
+        | Number(Data.Deaths) => "Number of fatalities"
+        | TotalMortalityRate => "Mortality rate"
       }
       onChange={chartType => setChartType(_ => chartType)}
     />
     {switch (chartType) {
-     | NumberOfCases =>
+     | Number(_) =>
        <RadioSection
          text={js|Scale|js}
          values=[|Logarithmic, Linear|]
@@ -418,6 +426,7 @@ let make =
          )
          onChange={scale => setScale(_ => scale)}
        />
+     | TotalMortalityRate
      | PercentageGrowthOfCases => React.null
      }}
     <Locations setLocations allLocations locations />

@@ -12,16 +12,13 @@ var Recharts$ReasonReactExamples = require("./Recharts.bs.js");
 
 var R = Recharts$ReasonReactExamples.Make({ });
 
-function calculateMaxValue(locations, data) {
+function calculateMaxValue(dataType, locations, data) {
   return data.reduce((function (maxValue, param) {
                 var values = param.values;
                 return locations.reduce((function (maxValue, $$location) {
-                              var match = Curry._1(values, $$location.id);
-                              if (match !== undefined) {
-                                return Math.max(maxValue, match.numberOfCases);
-                              } else {
-                                return maxValue;
-                              }
+                              return Js_option.getWithDefault(maxValue, Js_option.map((function (value) {
+                                                return Math.max(maxValue, Data$ReasonReactExamples.getValue(dataType, value));
+                                              }), Curry._1(values, $$location.id)));
                             }), maxValue);
               }), 1);
 }
@@ -41,6 +38,45 @@ function ordinalSuffix(i) {
   }
 }
 
+function renderTooltipValues(chartType, payload, separator) {
+  return payload.filter((function (payload) {
+                  return payload.name !== "daily-growth-indicator";
+                })).map((function (payload) {
+                var currentDataItem = Curry._1(payload.payload.values, payload.name);
+                var tmp;
+                if (typeof chartType === "number") {
+                  if (chartType !== 0) {
+                    var growthString = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
+                                var match = Data$ReasonReactExamples.getRecord(dataItem);
+                                return " (" + (match.deaths.toString() + ("/" + match.confirmed.toString()) + ")");
+                              }), currentDataItem));
+                    tmp = separator + ((payload.value * 100).toFixed() + ("%" + growthString));
+                  } else {
+                    var growthString$1 = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
+                                return " (+" + (Data$ReasonReactExamples.getDailyNewCases(dataItem).confirmed.toString() + ")");
+                              }), currentDataItem));
+                    tmp = separator + ("+" + ((payload.value * 100).toFixed() + ("%" + growthString$1)));
+                  }
+                } else {
+                  var dataType = chartType[0];
+                  var growthString$2 = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
+                              return " (+" + ((Data$ReasonReactExamples.getGrowth(dataType, dataItem) * 100).toFixed() + "%)");
+                            }), currentDataItem));
+                  tmp = React.createElement(React.Fragment, undefined, separator + payload.value.toString(), React.createElement("span", {
+                            className: "text-base font-normal"
+                          }, growthString$2));
+                }
+                return React.createElement("span", {
+                            key: payload.name,
+                            className: "text-base font-bold"
+                          }, React.createElement("span", {
+                                style: {
+                                  color: payload.stroke
+                                }
+                              }, payload.name), tmp);
+              }));
+}
+
 function Chart(Props) {
   var timeline = Props.timeline;
   var locations = Props.locations;
@@ -49,22 +85,26 @@ function Chart(Props) {
   var chartType = Props.chartType;
   var startDate = Props.startDate;
   var endDate = Props.endDate;
+  var dataType = typeof chartType === "number" ? (
+      chartType !== 0 ? /* Deaths */1 : /* Confirmed */0
+    ) : chartType[0];
+  var dataTypeSuffix = dataType ? " fatality" : " case";
   var formatLabel = timeline ? (function (x) {
         return x;
       }) : (function (str) {
         if (str === "1") {
-          return "1 day since " + (ordinalSuffix(threshold) + " case");
+          return "1 day since " + (ordinalSuffix(threshold) + dataTypeSuffix);
         } else {
-          return str + (" days since " + (ordinalSuffix(threshold) + " case"));
+          return str + (" days since " + (ordinalSuffix(threshold) + dataTypeSuffix));
         }
       });
-  var data = timeline ? Data$ReasonReactExamples.calendar(startDate, endDate) : Data$ReasonReactExamples.alignToDay0(threshold);
+  var data = timeline ? Data$ReasonReactExamples.calendar(startDate, endDate) : Data$ReasonReactExamples.alignToDay0(dataType, threshold);
   var growthBaseline;
-  if (chartType || timeline || scale) {
+  if (typeof chartType === "number" || chartType[0] || timeline || scale) {
     growthBaseline = null;
   } else {
     var threshold$1 = threshold;
-    var maxValue = calculateMaxValue(locations, data);
+    var maxValue = calculateMaxValue(/* Confirmed */0, locations, data);
     var exponent = Js_math.ceil(Math.log(maxValue / threshold$1) / Math.log(1.33));
     growthBaseline = React.createElement(Recharts.Line, {
           type: "monotone",
@@ -118,7 +158,7 @@ function Chart(Props) {
   if (timeline) {
     tmp = null;
   } else {
-    var value = "Number of days since " + (ordinalSuffix(threshold) + " case");
+    var value = "Number of days since " + (ordinalSuffix(threshold) + dataTypeSuffix);
     tmp = React.createElement(Recharts.Label, {
           style: {
             fontWeight: "bold",
@@ -158,14 +198,19 @@ function Chart(Props) {
                                                     var match = Curry._1(item.values, id);
                                                     if (match !== undefined) {
                                                       var x = match;
-                                                      if (x.numberOfCases !== 0) {
-                                                        if (chartType) {
-                                                          return x.growth;
+                                                      if (typeof chartType === "number") {
+                                                        if (chartType !== 0) {
+                                                          return Data$ReasonReactExamples.getTotalMortailityRate(x);
                                                         } else {
-                                                          return x.numberOfCases;
+                                                          return Data$ReasonReactExamples.getGrowth(/* Confirmed */0, x);
                                                         }
                                                       } else {
-                                                        return null;
+                                                        var value = Data$ReasonReactExamples.getValue(chartType[0], x);
+                                                        if (value !== 0) {
+                                                          return value;
+                                                        } else {
+                                                          return null;
+                                                        }
                                                       }
                                                     } else {
                                                       return null;
@@ -188,36 +233,13 @@ function Chart(Props) {
                                               });
                                   })).reverse(), React.createElement(Recharts.Tooltip, {
                                 content: (function (param) {
-                                    var separator = param.separator;
                                     var payload = param.payload;
                                     if (payload !== null) {
                                       return React.createElement("div", {
                                                   className: "tooltip flex flex-col bg-white shadow-lg border-solid border border-lightgrayblue rounded p-2"
                                                 }, React.createElement("span", {
                                                       className: "text-base font-bold"
-                                                    }, Curry._1(formatLabel, param.label)), payload.filter((function (payload) {
-                                                          return payload.name !== "daily-growth-indicator";
-                                                        })).map((function (payload) {
-                                                        var tmp;
-                                                        if (chartType) {
-                                                          tmp = separator + ("+" + ((payload.value * 100).toFixed() + "%"));
-                                                        } else {
-                                                          var growthString = Js_option.getWithDefault("", Js_option.map((function (param) {
-                                                                      return " (+" + ((param.growth * 100).toFixed() + "%)");
-                                                                    }), Curry._1(payload.payload.values, payload.name)));
-                                                          tmp = React.createElement(React.Fragment, undefined, separator + payload.value.toString(), React.createElement("span", {
-                                                                    className: "text-base font-normal"
-                                                                  }, growthString));
-                                                        }
-                                                        return React.createElement("span", {
-                                                                    key: payload.name,
-                                                                    className: "text-base font-bold"
-                                                                  }, React.createElement("span", {
-                                                                        style: {
-                                                                          color: payload.stroke
-                                                                        }
-                                                                      }, payload.name), tmp);
-                                                      })));
+                                                    }, Curry._1(formatLabel, param.label)), renderTooltipValues(chartType, payload, param.separator));
                                     } else {
                                       return null;
                                     }
@@ -243,7 +265,7 @@ function Chart(Props) {
                               }), React.createElement(Recharts.YAxis, {
                                 type: "number",
                                 scale: (function () {
-                                      switch (chartType || scale ? /* linear */-325037595 : /* log */5395588) {
+                                      switch (typeof chartType === "number" || scale ? /* linear */-325037595 : /* log */5395588) {
                                         case 5395588 :
                                             return "log";
                                         case -325037595 :
@@ -258,7 +280,7 @@ function Chart(Props) {
                                 axisLine: false,
                                 tickLine: false,
                                 tickFormatter: (function (x) {
-                                    if (chartType) {
+                                    if (typeof chartType === "number") {
                                       return (x * 100).toFixed() + "%";
                                     } else {
                                       return x.toString();
@@ -286,5 +308,6 @@ var make = Chart;
 exports.R = R;
 exports.calculateMaxValue = calculateMaxValue;
 exports.ordinalSuffix = ordinalSuffix;
+exports.renderTooltipValues = renderTooltipValues;
 exports.make = make;
 /* R Not a pure module */
