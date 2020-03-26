@@ -114,7 +114,7 @@ function Filters$Footer(Props) {
             }, React.createElement("div", undefined, React.createElement("span", undefined, "Created by ", React.createElement(Filters$Footer$A, {
                           href: "https://twitter.com/wokalski",
                           str: "Wojtek Czekalski"
-                        }))), React.createElement("div", undefined, React.createElement("span", {
+                        }), " and Marta Konopko")), React.createElement("div", undefined, React.createElement("span", {
                       className: "text-gray-400 text-base"
                     }, "Data provided by ", React.createElement(Filters$Footer$A, {
                           href: "https://github.com/CSSEGISandData/COVID-19",

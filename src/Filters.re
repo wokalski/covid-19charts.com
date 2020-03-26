@@ -70,6 +70,7 @@ module Footer = {
         <span>
           {React.string("Created by ")}
           <A href="https://twitter.com/wokalski" str="Wojtek Czekalski" />
+          {React.string(" and Marta Konopko")}
         </span>
       </div>
       <div>
