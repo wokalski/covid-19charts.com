@@ -117,7 +117,7 @@ let renderTooltipValues = (~chartType, ~payload, ~separator) => {
               |> Js.Option.getWithDefault("");
             React.string(
               separator
-              ++ (R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixed)
+              ++ Js.Float.toFixedWithPrecision(R.Line.toFloat(payload.value) *. 100., ~digits=2)
               ++ "%"
               ++ growthString,
             );

@@ -50,7 +50,7 @@ function renderTooltipValues(chartType, payload, separator) {
                                 var match = Data$ReasonReactExamples.getRecord(dataItem);
                                 return " (" + (match.deaths.toString() + ("/" + match.confirmed.toString()) + ")");
                               }), currentDataItem));
-                    tmp = separator + ((payload.value * 100).toFixed() + ("%" + growthString));
+                    tmp = separator + ((payload.value * 100).toFixed(2) + ("%" + growthString));
                   } else {
                     var growthString$1 = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
                                 return " (+" + (Data$ReasonReactExamples.getDailyNewCases(dataItem).confirmed.toString() + ")");
