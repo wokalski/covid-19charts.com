@@ -1,21 +1,7 @@
 module App = {
   let useLocations = (~default) => {
-    let white = "#fff";
-    let black = "#000";
-    let fallbackColor = ("#878787", white);
-    let colors = [|
-      ("#a50026", white),
-      ("#fdae61", black),
-      ("#313695", white),
-      ("#d73027", white),
-      ("#fee090", black),
-      ("#abd9e9", black),
-      ("#f46d43", white),
-      ("#74add1", white),
-      ("#4575b4", white),
-      fallbackColor,
-    |];
-    let colorMaxIndex = Belt.Array.length(colors) - 1;
+    let (colors, setColors) =
+      React.useState(() => ColorStack.make(~locations=default));
 
     let (locations, setLocations) =
       UseQueryParam.hook(
@@ -24,24 +10,25 @@ module App = {
         ~coder=SerializeQueryParam.stringArray,
       );
     (
-      Belt.Array.mapWithIndexU(
+      Belt.Array.mapU(
         locations,
-        (. index, locationId) => {
+        (. locationId) => {
           let (primaryColor, secondaryColor) =
-            Belt.Array.getUnsafe(
-              colors,
-              Js.Math.min_int(index, colorMaxIndex),
-            );
+            ColorStack.getColor(~location=locationId, colors);
           {
             Location.primaryColor,
-
             secondaryColor,
             text: Data.Map.get(Data.locations, locationId).name,
             id: locationId,
           };
         },
       ),
-      setLocations,
+      updater => {
+        setColors(colorStack =>
+          ColorStack.updateColors(~locations=updater(locations), colorStack)
+        );
+        setLocations(updater);
+      },
     );
   };
 

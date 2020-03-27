@@ -10,61 +10,23 @@ var SerializeQueryParams = require("serialize-query-params");
 var Data$ReasonReactExamples = require("./Data.bs.js");
 var Chart$ReasonReactExamples = require("./Chart.bs.js");
 var Filters$ReasonReactExamples = require("./Filters.bs.js");
+var ColorStack$ReasonReactExamples = require("./ColorStack.bs.js");
 var UseQueryParam$ReasonReactExamples = require("./UseQueryParam.bs.js");
 
 function useLocations($$default) {
-  var white = "#fff";
-  var black = "#000";
-  var fallbackColor = /* tuple */[
-    "#878787",
-    white
-  ];
-  var colors = [
-    /* tuple */[
-      "#a50026",
-      white
-    ],
-    /* tuple */[
-      "#fdae61",
-      black
-    ],
-    /* tuple */[
-      "#313695",
-      white
-    ],
-    /* tuple */[
-      "#d73027",
-      white
-    ],
-    /* tuple */[
-      "#fee090",
-      black
-    ],
-    /* tuple */[
-      "#abd9e9",
-      black
-    ],
-    /* tuple */[
-      "#f46d43",
-      white
-    ],
-    /* tuple */[
-      "#74add1",
-      white
-    ],
-    /* tuple */[
-      "#4575b4",
-      white
-    ],
-    fallbackColor
-  ];
-  var colorMaxIndex = colors.length - 1 | 0;
-  var match = UseQueryParam$ReasonReactExamples.hook((function (param) {
+  var match = React.useState((function () {
+          return ColorStack$ReasonReactExamples.make($$default);
+        }));
+  var setColors = match[1];
+  var colors = match[0];
+  var match$1 = UseQueryParam$ReasonReactExamples.hook((function (param) {
           return $$default;
         }), "loc", SerializeQueryParams.ArrayParam);
+  var setLocations = match$1[1];
+  var locations = match$1[0];
   return /* tuple */[
-          Belt_Array.mapWithIndexU(match[0], (function (index, locationId) {
-                  var match = colors[Math.min(index, colorMaxIndex)];
+          Belt_Array.mapU(locations, (function (locationId) {
+                  var match = ColorStack$ReasonReactExamples.getColor(locationId, colors);
                   return {
                           primaryColor: match[0],
                           secondaryColor: match[1],
@@ -72,7 +34,12 @@ function useLocations($$default) {
                           id: locationId
                         };
                 })),
-          match[1]
+          (function (updater) {
+              Curry._1(setColors, (function (colorStack) {
+                      return ColorStack$ReasonReactExamples.updateColors(Curry._1(updater, locations), colorStack);
+                    }));
+              return Curry._1(setLocations, updater);
+            })
         ];
 }
 
