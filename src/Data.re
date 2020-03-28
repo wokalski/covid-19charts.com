@@ -209,7 +209,7 @@ let getGrowth = dataType =>
       let prevNumberOfCases = getValueFromRecord(dataType, prevRecord);
       let prevNumberOfCasesF = Js.Int.toFloat(prevNumberOfCases);
       prevNumberOfCases == 0
-        ? 0. : (numberOfCasesF -. prevNumberOfCasesF) /. prevNumberOfCasesF;
+        ? 0. : numberOfCasesF /. prevNumberOfCasesF -. 1.;
     };
 
 let getTotalMortailityRate =

@@ -187,7 +187,7 @@ function getGrowth(dataType, param) {
     if (prevNumberOfCases === 0) {
       return 0;
     } else {
-      return (numberOfCasesF - prevNumberOfCasesF) / prevNumberOfCasesF;
+      return numberOfCasesF / prevNumberOfCasesF - 1;
     }
   } else {
     return 0;

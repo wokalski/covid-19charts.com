@@ -2,7 +2,6 @@ open Recharts;
 module R =
   Recharts.Make({
     type dataItem = Data.item;
-    type yValue = int;
   });
 
 type domain;
@@ -59,69 +58,76 @@ let renderTooltipValues = (~chartType, ~payload, ~separator) => {
          <span style={ReactDOMRe.Style.make(~color=payload.stroke, ())}>
            {React.string(payload.name)}
          </span>
-         {switch (chartType) {
-          | Filters.Number(dataType) =>
-            let growthString =
-              currentDataItem
-              |> Js.Option.map((. dataItem) => {
-                   " (+"
-                   ++ (
-                     Data.getGrowth(dataType, dataItem)
-                     *. 100.
-                     |> Js.Float.toFixed
+         {let (mainData, extraData) =
+            switch (chartType) {
+            | Filters.Number(dataType) =>
+              let growthString =
+                currentDataItem
+                |> Js.Option.map((. dataItem) => {
+                     " (+"
+                     ++ (
+                       Data.getGrowth(dataType, dataItem)
+                       *. 100.
+                       |> Js.Float.toFixed
+                     )
+                     ++ "%)"
+                   })
+                |> Js.Option.getWithDefault("");
+              (
+                separator ++ Js.Int.toString(R.Line.toInt(payload.value)),
+                growthString,
+              );
+            | Filters.PercentageGrowthOfCases =>
+              let growthString =
+                currentDataItem
+                |> Js.Option.map((. dataItem) => {
+                     " (+"
+                     ++ (
+                       Data.getDailyNewCases(dataItem).confirmed
+                       |> Js.Int.toString
+                     )
+                     ++ ")"
+                   })
+                |> Js.Option.getWithDefault("");
+              (
+                separator
+                ++ "+"
+                ++ (
+                  R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixed
+                )
+                ++ "%",
+                growthString,
+              );
+            | Filters.TotalMortalityRate =>
+              let growthString =
+                currentDataItem
+                |> Js.Option.map((. dataItem) => {
+                     let {Data.confirmed, deaths} = Data.getRecord(dataItem);
+                     " ("
+                     ++ (
+                       Js.Int.toString(deaths)
+                       ++ "/"
+                       ++ Js.Int.toString(confirmed)
+                     )
+                     ++ ")";
+                   })
+                |> Js.Option.getWithDefault("");
+              (
+                separator
+                ++ Js.Float.toFixedWithPrecision(
+                     R.Line.toFloat(payload.value) *. 100.,
+                     ~digits=2,
                    )
-                   ++ "%)"
-                 })
-              |> Js.Option.getWithDefault("");
-            <>
-              {React.string(
-                 separator ++ Js.Int.toString(R.Line.toInt(payload.value)),
-               )}
-              <span className="text-base font-normal">
-                {React.string(growthString)}
-              </span>
-            </>;
-          | Filters.PercentageGrowthOfCases =>
-            let growthString =
-              currentDataItem
-              |> Js.Option.map((. dataItem) => {
-                   " (+"
-                   ++ (
-                     Data.getDailyNewCases(dataItem).confirmed
-                     |> Js.Int.toString
-                   )
-                   ++ ")"
-                 })
-              |> Js.Option.getWithDefault("");
-            React.string(
-              separator
-              ++ "+"
-              ++ (R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixed)
-              ++ "%"
-              ++ growthString,
-            );
-          | Filters.TotalMortalityRate =>
-            let growthString =
-              currentDataItem
-              |> Js.Option.map((. dataItem) => {
-                   let {Data.confirmed, deaths} =
-                     Data.getRecord(dataItem);
-                   " ("
-                   ++ (
-                     Js.Int.toString(deaths)
-                     ++ "/"
-                     ++ Js.Int.toString(confirmed)
-                   )
-                   ++ ")";
-                 })
-              |> Js.Option.getWithDefault("");
-            React.string(
-              separator
-              ++ Js.Float.toFixedWithPrecision(R.Line.toFloat(payload.value) *. 100., ~digits=2)
-              ++ "%"
-              ++ growthString,
-            );
-          }}
+                ++ "%",
+                growthString,
+              );
+            };
+          <>
+            {React.string(mainData)}
+            <span className="text-base font-normal">
+              {React.string(extraData)}
+            </span>
+          </>}
        </span>;
      })
   |> React.array;
