@@ -43,28 +43,35 @@ function renderTooltipValues(chartType, payload, separator) {
                   return payload.name !== "daily-growth-indicator";
                 })).map((function (payload) {
                 var currentDataItem = Curry._1(payload.payload.values, payload.name);
-                var tmp;
+                var match;
                 if (typeof chartType === "number") {
                   if (chartType !== 0) {
                     var growthString = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
                                 var match = Data$ReasonReactExamples.getRecord(dataItem);
                                 return " (" + (match.deaths.toString() + ("/" + match.confirmed.toString()) + ")");
                               }), currentDataItem));
-                    tmp = separator + ((payload.value * 100).toFixed() + ("%" + growthString));
+                    match = /* tuple */[
+                      separator + ((payload.value * 100).toFixed(2) + "%"),
+                      growthString
+                    ];
                   } else {
                     var growthString$1 = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
                                 return " (+" + (Data$ReasonReactExamples.getDailyNewCases(dataItem).confirmed.toString() + ")");
                               }), currentDataItem));
-                    tmp = separator + ("+" + ((payload.value * 100).toFixed() + ("%" + growthString$1)));
+                    match = /* tuple */[
+                      separator + ("+" + ((payload.value * 100).toFixed() + "%")),
+                      growthString$1
+                    ];
                   }
                 } else {
                   var dataType = chartType[0];
                   var growthString$2 = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
                               return " (+" + ((Data$ReasonReactExamples.getGrowth(dataType, dataItem) * 100).toFixed() + "%)");
                             }), currentDataItem));
-                  tmp = React.createElement(React.Fragment, undefined, separator + payload.value.toString(), React.createElement("span", {
-                            className: "text-base font-normal"
-                          }, growthString$2));
+                  match = /* tuple */[
+                    separator + payload.value.toString(),
+                    growthString$2
+                  ];
                 }
                 return React.createElement("span", {
                             key: payload.name,
@@ -73,7 +80,9 @@ function renderTooltipValues(chartType, payload, separator) {
                                 style: {
                                   color: payload.stroke
                                 }
-                              }, payload.name), tmp);
+                              }, payload.name), React.createElement(React.Fragment, undefined, match[0], React.createElement("span", {
+                                    className: "text-base font-normal"
+                                  }, match[1])));
               }));
 }
 
