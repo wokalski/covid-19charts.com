@@ -56,12 +56,13 @@ function useStringQueryParamState(initial, queryFragment, encode, decode) {
 
 function Index$App(Props) {
   var match = useLocations([
-        "China (Guangdong)",
-        "Germany",
         "Italy",
-        "Japan",
+        "Poland",
         "Spain",
-        "US"
+        "Germany",
+        "Canada (All regions)",
+        "US",
+        "China (All regions)"
       ]);
   var locations = match[0];
   var scale = useStringQueryParamState((function (param) {

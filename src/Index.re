@@ -52,12 +52,13 @@ module App = {
     let (locations, setLocations) =
       useLocations(
         ~default=[|
-          "China (Guangdong)",
-          "Germany",
           "Italy",
-          "Japan",
+          "Poland",
           "Spain",
+          "Germany",
+          "Canada (All regions)",
           "US",
+          "China (All regions)",
         |],
       );
     let scale =
