@@ -68,7 +68,7 @@ let renderTooltipValues = (~chartType, ~payload, ~separator) => {
                      ++ (
                        Data.getGrowth(dataType, dataItem)
                        *. 100.
-                       |> Js.Float.toFixed
+                       |> Js.Float.toFixedWithPrecision(~digits=1)
                      )
                      ++ "%)"
                    })
@@ -93,7 +93,7 @@ let renderTooltipValues = (~chartType, ~payload, ~separator) => {
                 separator
                 ++ "+"
                 ++ (
-                  R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixed
+                  R.Line.toFloat(payload.value) *. 100. |> Js.Float.toFixedWithPrecision(~digits=1)
                 )
                 ++ "%",
                 growthString,

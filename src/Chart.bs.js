@@ -59,14 +59,18 @@ function renderTooltipValues(chartType, payload, separator) {
                                 return " (+" + (Data$ReasonReactExamples.getDailyNewCases(dataItem).confirmed.toString() + ")");
                               }), currentDataItem));
                     match = /* tuple */[
-                      separator + ("+" + ((payload.value * 100).toFixed() + "%")),
+                      separator + ("+" + ((function (param) {
+                                return param.toFixed(1);
+                              })(payload.value * 100) + "%")),
                       growthString$1
                     ];
                   }
                 } else {
                   var dataType = chartType[0];
                   var growthString$2 = Js_option.getWithDefault("", Js_option.map((function (dataItem) {
-                              return " (+" + ((Data$ReasonReactExamples.getGrowth(dataType, dataItem) * 100).toFixed() + "%)");
+                              return " (+" + ((function (param) {
+                                            return param.toFixed(1);
+                                          })(Data$ReasonReactExamples.getGrowth(dataType, dataItem) * 100) + "%)");
                             }), currentDataItem));
                   match = /* tuple */[
                     separator + payload.value.toString(),
