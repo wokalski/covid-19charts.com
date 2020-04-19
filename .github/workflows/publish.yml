@@ -9,9 +9,6 @@ jobs:
   build-deploy:
     runs-on: ubuntu-18.04
     steps:
-    - name: Inspect disc usage
-      run: |
-        df -H
     - uses: actions/checkout@master
     - uses: actions/setup-node@master
       with:
@@ -43,8 +40,3 @@ jobs:
         ACTIONS_DEPLOY_KEY: ${{ secrets.ACTION_DEPLOY_KEY }}
         PUBLISH_BRANCH: gh-pages
         PUBLISH_DIR: ./bundleOutput
-    - name: Inspect disc usage
-      run: |
-        df -H
-        du -sh ~/.esy
-        du -sh .
