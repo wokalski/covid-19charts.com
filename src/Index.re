@@ -110,7 +110,7 @@ module App = {
       );
     let threshold =
       UseQueryParam.hook(
-        () => Some(17),
+        () => Some(1000),
         ~queryFragment="threshold",
         ~coder={
           encode: x => {
